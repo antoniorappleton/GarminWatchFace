@@ -2,11 +2,13 @@
 
 Variante experimental do Tático Claro, de inspiração militar, para o Garmin Instinct 3 Solar.
 
-- Numeração das horas que muda com o período do dia: manhã 12, 1–11; tarde 12, 13–23
-- Ponteiros tipo espada, pretos, com faixa interior branca ("lume") e contorno branco
-- Arco de bateria, pulsação, dia do mês e hora digital na subjanela (como no Tático Claro)
+- Numeração que muda com o período do dia (manhã 12, 1–11; tarde 12, 13–23): eixos cardeais grandes, restantes pequenos
+- Ponteiros tipo espada com faixa interior ("lume") e contorno
+- Subjanela: temperatura e probabilidade de precipitação, hora digital, dia da semana e data
+- Arco de bateria e pulsação no mostrador
+- Variante escura: `_dark = true` no início de `TaticoNavyView.mc`
 
-Estado: **EM DESENVOLVIMENTO** — código escrito, ainda não compilado nem testado.
+Estado: **EM DESENVOLVIMENTO** — v1 testada no simulador; v2 (meteorologia e numeração cardeal) ainda por compilar.
 
 Tem um ID de aplicação próprio: pode ser instalado ao lado do Tático Claro para comparar.
 
