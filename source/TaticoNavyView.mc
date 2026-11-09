@@ -1,5 +1,3 @@
-import Toybox.Activity;
-import Toybox.ActivityMonitor;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
@@ -13,7 +11,7 @@ import Toybox.Weather;
 // - Numeração que muda com o período do dia (manhã 12, 1–11 | tarde 12, 13–23):
 //   eixos cardeais em tamanho grande, restantes em tamanho pequeno.
 // - Ponteiros tipo espada com faixa interior ("lume").
-// - Data e hora em formato militar DTG (Date-Time Group): DDHHMM + letra do fuso, MÊS AA.
+// - Data e hora em formato militar DTG (Date-Time Group): DDHHMM + letra do fuso (ex.: 091652Z).
 // - Subjanela: temperatura e probabilidade de precipitação.
 // - Assinatura da marca por baixo do 12.
 //
@@ -26,9 +24,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     // Assinatura. Usar "®" só com a marca registada; caso contrário, "™".
     private var _brand = "APPLETON®";
-
-    private var _months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
     private var _fg = Graphics.COLOR_BLACK;  // cor dos elementos
     private var _bg = Graphics.COLOR_WHITE;  // cor do fundo
@@ -80,7 +75,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
         drawTicks(dc, cx, cy, s);
         drawNumerals(dc, cx, cy, s, t.hour >= 12);
         drawBrand(dc, cx, cy, s);
-        drawHeartRate(dc, cx, cy, s);
         drawDtg(dc, cx, cy, s);
         drawHands(dc, cx, cy, s, t);
         drawSubscreen(dc, cx, cy, s);  // por último: a subjanela tapa os ponteiros
@@ -148,36 +142,37 @@ class TaticoNavyView extends WatchUi.WatchFace {
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Pulsação à esquerda do centro.
-    private function drawHeartRate(dc as Dc, cx, cy, s) as Void {
-        var x = cx - 32 * s;
-        var y = cy - 8 * s;
-        var hr = getHeartRate();
-
-        dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        drawHeart(dc, x, y, s);
-        dc.drawText(x, y + 14 * s, Graphics.FONT_XTINY, hr == null ? "--" : hr.toString(),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-    }
-
-    // Data e hora militar (DTG), abaixo do centro:
-    //   linha 1: DDHHMM + letra do fuso (ex.: 091637Z)
-    //   linha 2: MÊS AA (ex.: NOV 26)
-    // Usa sempre 24 horas e a hora local; a letra indica o fuso (Z = UTC).
+    // Data e hora militar (DTG) abaixo do centro, numa linha: DD HHMM + letra do fuso.
+    // Ex.: 091652Z = dia 09, 16h52, fuso Z (UTC).
+    // O dia vai numa caixa invertida para se distinguir da hora (o ecrã MIP só tem preto e branco).
+    // Usa sempre 24 horas e a hora local; a letra indica o fuso.
     private function drawDtg(dc as Dc, cx, cy, s) as Void {
         var now = Time.now();
         var local = Gregorian.info(now, Time.FORMAT_SHORT);
         var utc = Gregorian.utcInfo(now, Time.FORMAT_SHORT);
 
-        var line1 = local.day.format("%02d") + local.hour.format("%02d")
-            + local.min.format("%02d") + zoneLetter(local, utc);
-        var line2 = _months[local.month - 1] + " " + (local.year % 100).format("%02d");
+        var day = local.day.format("%02d");
+        var rest = local.hour.format("%02d") + local.min.format("%02d") + zoneLetter(local, utc);
 
+        var font = Graphics.FONT_SMALL;
+        var pad = 2 * s;
+        var gap = 2 * s;
+        var wDay = dc.getTextWidthInPixels(day, font);
+        var wRest = dc.getTextWidthInPixels(rest, font);
+        var h = dc.getFontHeight(font);
+        var y = cy + 28 * s;
+        var left = cx - (wDay + 2 * pad + gap + wRest) / 2;
+
+        // Dia: caixa cheia com texto na cor do fundo
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy + 26 * s, Graphics.FONT_SMALL, line1,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, cy + 41 * s, Graphics.FONT_XTINY, line2,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.fillRoundedRectangle(left, y - h / 2, wDay + 2 * pad, h, 2 * s);
+        dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(left + pad, y, font, day, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // Hora, minutos e fuso
+        dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(left + wDay + 2 * pad + gap, y, font, rest,
+            Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // Subjanela: temperatura grande em cima, probabilidade de precipitação em baixo.
@@ -298,13 +293,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     // ---------- Ícones ----------
 
-    private function drawHeart(dc as Dc, x, y, s) as Void {
-        var r = 2.4 * s;
-        dc.fillCircle(x - r, y - 1.5 * s, r);
-        dc.fillCircle(x + r, y - 1.5 * s, r);
-        dc.fillPolygon([[x - 2 * r, y - 0.8 * s], [x + 2 * r, y - 0.8 * s], [x, y + 4.5 * s]]);
-    }
-
     // Gota de água: círculo em baixo, ponta em cima.
     private function drawDrop(dc as Dc, x, y, u) as Void {
         var r = 2.5 * u;
@@ -343,21 +331,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private function getConditions() {
         if (Toybox has :Weather) {
             return Weather.getCurrentConditions();
-        }
-        return null;
-    }
-
-    // Pulsação atual; se indisponível, a última amostra do histórico. null se não houver.
-    private function getHeartRate() {
-        var info = Activity.getActivityInfo();
-        if (info != null && info.currentHeartRate != null) {
-            return info.currentHeartRate;
-        }
-        if (ActivityMonitor has :getHeartRateHistory) {
-            var sample = ActivityMonitor.getHeartRateHistory(1, true).next();
-            if (sample != null && sample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE) {
-                return sample.heartRate;
-            }
         }
         return null;
     }

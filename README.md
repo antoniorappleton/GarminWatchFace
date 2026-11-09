@@ -4,12 +4,12 @@ Variante experimental do Tático Claro, de inspiração militar, para o Garmin I
 
 - Numeração que muda com o período do dia (manhã 12, 1–11; tarde 12, 13–23): eixos cardeais grandes, restantes pequenos
 - Ponteiros tipo espada com faixa interior ("lume") e contorno
-- Data e hora militar (DTG): DDHHMM + letra do fuso (Z = UTC), MÊS AA
+- Data e hora militar (DTG) numa linha: dia em caixa invertida + HHMM + letra do fuso (ex.: 091652Z; Z = UTC)
 - Subjanela: temperatura e probabilidade de precipitação
-- Pulsação no mostrador e assinatura da marca por baixo do 12 (`_brand`; usar ™ enquanto a marca não estiver registada)
+- Assinatura da marca por baixo do 12 (`_brand`; usar ™ enquanto a marca não estiver registada)
 - Variante escura: `_dark = true` no início de `TaticoNavyView.mc`
 
-Estado: **EM DESENVOLVIMENTO** — v1 testada no simulador; v3 (DTG, meteorologia, assinatura, sem bateria) ainda por compilar.
+Estado: **EM DESENVOLVIMENTO** — v1 testada no simulador; v4 (DTG numa linha com dia destacado, sem pulsação) ainda por compilar.
 
 Tem um ID de aplicação próprio: pode ser instalado ao lado do Tático Claro para comparar.
 
