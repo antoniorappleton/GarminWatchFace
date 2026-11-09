@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Appleton Labs — Tático Claro (mostrador para Garmin Instinct 3 Solar) -->
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application
+        id="bf58167d3d1140eba23f7a67226e38be"
+        type="watchface"
+        name="@Strings.AppName"
+        entry="TaticoClaroApp"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="4.2.0">
+        <iq:products>
+            <!-- Para acrescentar o 50 mm ou os AMOLED, usa o editor de manifesto do VS Code -->
+            <iq:product id="instinct3solar45mm"/>
+        </iq:products>
+        <iq:permissions/>
+        <iq:languages>
+            <iq:language>por</iq:language>
+            <iq:language>spa</iq:language>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
