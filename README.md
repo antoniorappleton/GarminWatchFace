@@ -2,14 +2,17 @@
 
 Variante experimental do Tático Claro, de inspiração militar, para o Garmin Instinct 3 Solar.
 
-- Numeração que muda com o período do dia (manhã 12, 1–11; tarde 12, 13–23): eixos cardeais grandes, restantes pequenos
+- Fundo branco ou preto: escolha no relógio (personalizar mostrador) ou na app Connect IQ, depois de publicado
+- Numeração que muda sozinha entre manhã (12, 1–11) e tarde (12, 13–23); eixos cardeais em fonte do sistema, restantes em fonte própria mais pequena
 - Ponteiros tipo espada com faixa interior ("lume") e contorno
-- Data e hora militar (DTG) numa linha: dia em caixa invertida + HHMM + letra do fuso (ex.: 091652Z; Z = UTC)
+- DTG: dia em grande + HHMM e letra do fuso (ex.: 09 2017Z; Z = UTC)
+- Coordenadas em graus e minutos decimais, numa caixa de cantos chanfrados (última posição conhecida)
 - Subjanela: temperatura e probabilidade de precipitação
-- Assinatura da marca por baixo do 12 (`_brand`; usar ™ enquanto a marca não estiver registada)
-- Variante escura: `_dark = true` no início de `TaticoNavyView.mc`
+- Assinatura "appleton" em minúsculas (`_brand`; usar ™ enquanto a marca não estiver registada)
 
-Estado: **EM DESENVOLVIMENTO** — v1 testada no simulador; v4 (DTG numa linha com dia destacado, sem pulsação) ainda por compilar.
+Fonte própria: `resources/fonts/small.fnt` + `small.png` (DejaVu Sans Condensed Bold, 11 px, 1 bit).
+
+Estado: **EM TESTES** — v4 instalada no relógio; v5 (fonte própria, coordenadas, escolha de fundo) ainda por compilar.
 
 Tem um ID de aplicação próprio: pode ser instalado ao lado do Tático Claro para comparar.
 

@@ -1,3 +1,5 @@
+import Toybox.Activity;
+import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
@@ -8,25 +10,25 @@ import Toybox.WatchUi;
 import Toybox.Weather;
 
 // Tático Navy — mostrador tático/militar para o Instinct 3 Solar.
+// - Fundo branco ou preto, à escolha nas definições (no relógio ou no telemóvel).
 // - Numeração que muda com o período do dia (manhã 12, 1–11 | tarde 12, 13–23):
-//   eixos cardeais em tamanho grande, restantes em tamanho pequeno.
+//   eixos cardeais com a fonte do sistema, restantes com a fonte pequena própria.
 // - Ponteiros tipo espada com faixa interior ("lume").
-// - Data e hora em formato militar DTG (Date-Time Group): DDHHMM + letra do fuso (ex.: 091652Z).
+// - DTG: dia em grande + HHMM e letra do fuso (ex.: 09 2017Z).
+// - Coordenadas em graus e minutos decimais, numa caixa de cantos chanfrados.
 // - Subjanela: temperatura e probabilidade de precipitação.
-// - Assinatura da marca por baixo do 12.
+// - Assinatura em minúsculas, sem tocar na subjanela.
 //
 // Convenção de ângulos: 0° = 12 horas, a crescer no sentido dos ponteiros.
 // Medidas em unidades do ecrã de referência (176 px), multiplicadas por s.
 class TaticoNavyView extends WatchUi.WatchFace {
 
-    // true = fundo preto e elementos brancos; false = fundo branco
-    private var _dark = false;
-
     // Assinatura. Usar "®" só com a marca registada; caso contrário, "™".
-    private var _brand = "APPLETON®";
+    private var _brand = "appleton®";
 
-    private var _fg = Graphics.COLOR_BLACK;  // cor dos elementos
-    private var _bg = Graphics.COLOR_WHITE;  // cor do fundo
+    private var _small = Graphics.FONT_XTINY;  // substituída pela fonte própria em onLayout
+    private var _fg = Graphics.COLOR_BLACK;    // cor dos elementos
+    private var _bg = Graphics.COLOR_WHITE;    // cor do fundo
     private var _sleeping = false;
     private var _sub = null;  // área da subjanela (BoundingBox) ou null
 
@@ -42,6 +44,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
     }
 
     function onLayout(dc as Dc) as Void {
+        _small = WatchUi.loadResource(Rez.Fonts.Small);
         if (WatchUi has :getSubscreen) {
             _sub = WatchUi.getSubscreen();
         }
@@ -67,8 +70,9 @@ class TaticoNavyView extends WatchUi.WatchFace {
             return;
         }
 
-        _fg = _dark ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
-        _bg = _dark ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE;
+        var dark = Application.Properties.getValue("DarkMode") == true;
+        _fg = dark ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
+        _bg = dark ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE;
         dc.setColor(_bg, _bg);
         dc.clear();
 
@@ -76,6 +80,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
         drawNumerals(dc, cx, cy, s, t.hour >= 12);
         drawBrand(dc, cx, cy, s);
         drawDtg(dc, cx, cy, s);
+        drawCoordinates(dc, cx, cy, s);
         drawHands(dc, cx, cy, s, t);
         drawSubscreen(dc, cx, cy, s);  // por último: a subjanela tapa os ponteiros
     }
@@ -116,36 +121,43 @@ class TaticoNavyView extends WatchUi.WatchFace {
         }
     }
 
-    // Numeração: manhã 12, 1–11; tarde 12, 13–23.
-    // Eixos cardeais (12, 3, 6, 9) grandes; restantes pequenos e mais perto da borda.
+    // Numeração: manhã 12, 1–11; tarde 12, 13–23 (muda sozinha ao meio-dia e à meia-noite).
+    // Eixos cardeais (12, 3, 6, 9) com a fonte do sistema; restantes com a fonte pequena.
     private function drawNumerals(dc as Dc, cx, cy, s, pm) as Void {
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
         for (var i = 1; i <= 12; i++) {
             var cardinal = (i % 3 == 0);
-            var p = pt(cx, cy, i * 30, cardinal ? 62 * s : 67 * s, 0);
-            if (insideSub(p, 10 * s)) {
+            var p = pt(cx, cy, i * 30, cardinal ? 63 * s : 70 * s, 0);
+            if (insideSub(p, 8 * s)) {
                 continue;
             }
             var label = i;
             if (pm && i != 12) {
                 label = i + 12;
             }
-            dc.drawText(p[0], p[1], cardinal ? Graphics.FONT_MEDIUM : Graphics.FONT_XTINY,
+            dc.drawText(p[0], p[1], cardinal ? Graphics.FONT_MEDIUM : _small,
                 label.toString(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
 
-    // Assinatura da marca por baixo do 12.
+    // Assinatura por baixo do 12. Se tocar na subjanela, desliza para a esquerda.
     private function drawBrand(dc as Dc, cx, cy, s) as Void {
+        var y = cy - 32 * s;
+        var w = dc.getTextWidthInPixels(_brand, _small);
+        var h = dc.getFontHeight(_small);
+        var x = cx;
+        if (_sub != null && y + h / 2 > _sub.y && y - h / 2 < _sub.y + _sub.height) {
+            var maxRight = _sub.x - 4 * s;
+            if (x + w / 2 > maxRight) {
+                x = maxRight - w / 2;
+            }
+        }
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy - 36 * s, Graphics.FONT_XTINY, _brand,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(x, y, _small, _brand, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Data e hora militar (DTG) abaixo do centro, numa linha: DD HHMM + letra do fuso.
-    // Ex.: 091652Z = dia 09, 16h52, fuso Z (UTC).
-    // O dia vai numa caixa invertida para se distinguir da hora (o ecrã MIP só tem preto e branco).
-    // Usa sempre 24 horas e a hora local; a letra indica o fuso.
+    // DTG por baixo do centro: dia em grande + HHMM e letra do fuso em pequeno (ex.: 09 2017Z).
+    // Usa sempre 24 horas e a hora local; a letra indica o fuso (Z = UTC).
     private function drawDtg(dc as Dc, cx, cy, s) as Void {
         var now = Time.now();
         var local = Gregorian.info(now, Time.FORMAT_SHORT);
@@ -154,29 +166,63 @@ class TaticoNavyView extends WatchUi.WatchFace {
         var day = local.day.format("%02d");
         var rest = local.hour.format("%02d") + local.min.format("%02d") + zoneLetter(local, utc);
 
-        var font = Graphics.FONT_SMALL;
-        var pad = 2 * s;
-        var gap = 2 * s;
-        var wDay = dc.getTextWidthInPixels(day, font);
-        var wRest = dc.getTextWidthInPixels(rest, font);
-        var h = dc.getFontHeight(font);
-        var y = cy + 28 * s;
-        var left = cx - (wDay + 2 * pad + gap + wRest) / 2;
+        var bigFont = Graphics.FONT_MEDIUM;
+        var smallFont = Graphics.FONT_XTINY;
+        var gap = 4 * s;
+        var wDay = dc.getTextWidthInPixels(day, bigFont);
+        var wRest = dc.getTextWidthInPixels(rest, smallFont);
+        var y = cy + 16 * s;
+        var left = cx - (wDay + gap + wRest) / 2;
 
-        // Dia: caixa cheia com texto na cor do fundo
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.fillRoundedRectangle(left, y - h / 2, wDay + 2 * pad, h, 2 * s);
-        dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(left + pad, y, font, day, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(left, y, bigFont, day, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(left + wDay + gap, y, smallFont, rest,
+            Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
 
-        // Hora, minutos e fuso
+    // Coordenadas (graus e minutos decimais) numa caixa com os cantos de cima chanfrados.
+    private function drawCoordinates(dc as Dc, cx, cy, s) as Void {
+        var line1 = "N --°--.---'";
+        var line2 = "W ---°--.---'";
+        var loc = getLocation();
+        if (loc != null) {
+            line1 = formatDdm(loc[0], true);
+            line2 = formatDdm(loc[1], false);
+        }
+
+        var lineStep = 10 * s;
+        var pad = 3 * s;
+        var textW = dc.getTextWidthInPixels(line2, _small);
+        var w1 = dc.getTextWidthInPixels(line1, _small);
+        if (w1 > textW) {
+            textW = w1;
+        }
+        var bw = textW + 2 * pad + 2 * s;
+        var top = cy + 28 * s;
+        var bh = 2 * lineStep + 3 * s;
+        var x0 = cx - bw / 2;
+        var x1 = cx + bw / 2;
+        var y1 = top + bh;
+        var c = 4 * s;  // tamanho do chanfro
+
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(left + wDay + 2 * pad + gap, y, font, rest,
+        dc.setPenWidth(1);
+        dc.drawLine(x0 + c, top, x1 - c, top);
+        dc.drawLine(x1 - c, top, x1, top + c);
+        dc.drawLine(x1, top + c, x1, y1);
+        dc.drawLine(x1, y1, x0, y1);
+        dc.drawLine(x0, y1, x0, top + c);
+        dc.drawLine(x0, top + c, x0 + c, top);
+
+        // Texto alinhado à esquerda, para os valores ficarem em coluna
+        var tx = cx - textW / 2;
+        dc.drawText(tx, top + 1.5 * s + lineStep / 2, _small, line1,
+            Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(tx, top + 1.5 * s + lineStep * 1.5, _small, line2,
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // Subjanela: temperatura grande em cima, probabilidade de precipitação em baixo.
-    // Sem subjanela (outros modelos): meteorologia numa linha acima da assinatura.
     private function drawSubscreen(dc as Dc, cx, cy, s) as Void {
         var temp = "--°";
         var rain = "--%";
@@ -301,6 +347,45 @@ class TaticoNavyView extends WatchUi.WatchFace {
     }
 
     // ---------- Dados ----------
+
+    // Última posição conhecida, em graus decimais [latitude, longitude], ou null.
+    // Um mostrador não liga o GPS: usa a posição da última atividade e guarda-a,
+    // para não a perder quando o relógio a descarta. Recurso final: a localização da meteorologia.
+    private function getLocation() {
+        var info = Activity.getActivityInfo();
+        if (info != null && info.currentLocation != null) {
+            var deg = info.currentLocation.toDegrees();
+            Application.Storage.setValue("loc", [deg[0], deg[1]]);
+            return deg;
+        }
+        var saved = Application.Storage.getValue("loc");
+        if (saved != null) {
+            return saved;
+        }
+        var cond = getConditions();
+        if (cond != null && cond.observationLocationPosition != null) {
+            return cond.observationLocationPosition.toDegrees();
+        }
+        return null;
+    }
+
+    // Graus e minutos decimais, como nos GPS: "N 38°42.381'" / "W 009°10.714'".
+    private function formatDdm(value, isLat) as String {
+        var hemi;
+        if (isLat) {
+            hemi = value >= 0 ? "N" : "S";
+        } else {
+            hemi = value >= 0 ? "E" : "W";
+        }
+        var a = value < 0 ? -value : value;
+        var deg = a.toNumber();
+        var min = (a - deg) * 60.0;
+        var minTxt = min.format("%.3f");
+        if (min < 10) {
+            minTxt = "0" + minTxt;
+        }
+        return hemi + " " + deg.format(isLat ? "%02d" : "%03d") + "°" + minTxt + "'";
+    }
 
     // Letra militar do fuso horário a partir da diferença entre hora local e UTC.
     // Z = UTC; A–M (sem J) = UTC+1…+12; N–Y = UTC−1…−12; J = fuso não inteiro.
