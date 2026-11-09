@@ -15,7 +15,7 @@ Recursos gerados por `tools/gen_assets.py` (Pillow + numpy): terreno (`resources
 e fontes (`resources/fonts/small.*` 11 px, `coord.*` 10 px, DejaVu Sans Condensed Bold, 1 bit).
 Se mudares posições no mostrador, atualiza as zonas livres no gerador e volta a corrê-lo.
 
-Estado: **EM TESTES** — v5 no relógio; v6 (terreno, coordenadas 10 px, assinatura sem ®) ainda por compilar.
+Estado: **EM TESTES** — v5 no relógio; v6 (terreno, coordenadas 10 px, assinatura sem ®) compilada em `bin/taticonavy.iq`, pronta a submeter.
 
 Tem um ID de aplicação próprio: pode ser instalado ao lado do Tático Claro para comparar.
 

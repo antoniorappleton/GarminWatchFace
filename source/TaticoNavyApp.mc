@@ -36,7 +36,7 @@ class TaticoNavySettingsDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item) {
         if (item.getId().equals("dark")) {
-            Application.Properties.setValue("DarkMode", item.isEnabled());
+            Application.Properties.setValue("DarkMode", (item as WatchUi.ToggleMenuItem).isEnabled());
             WatchUi.requestUpdate();
         }
     }
