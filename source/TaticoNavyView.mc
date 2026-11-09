@@ -13,8 +13,9 @@ import Toybox.Weather;
 // - Numeração que muda com o período do dia (manhã 12, 1–11 | tarde 12, 13–23):
 //   eixos cardeais em tamanho grande, restantes em tamanho pequeno.
 // - Ponteiros tipo espada com faixa interior ("lume").
-// - Subjanela: meteorologia (temperatura e probabilidade de precipitação),
-//   hora digital e dia da semana com data.
+// - Data e hora em formato militar DTG (Date-Time Group): DDHHMM + letra do fuso, MÊS AA.
+// - Subjanela: temperatura e probabilidade de precipitação.
+// - Assinatura da marca por baixo do 12.
 //
 // Convenção de ângulos: 0° = 12 horas, a crescer no sentido dos ponteiros.
 // Medidas em unidades do ecrã de referência (176 px), multiplicadas por s.
@@ -22,6 +23,12 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     // true = fundo preto e elementos brancos; false = fundo branco
     private var _dark = false;
+
+    // Assinatura. Usar "®" só com a marca registada; caso contrário, "™".
+    private var _brand = "APPLETON®";
+
+    private var _months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
     private var _fg = Graphics.COLOR_BLACK;  // cor dos elementos
     private var _bg = Graphics.COLOR_WHITE;  // cor do fundo
@@ -72,10 +79,11 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
         drawTicks(dc, cx, cy, s);
         drawNumerals(dc, cx, cy, s, t.hour >= 12);
-        drawBattery(dc, cx, cy, s);
+        drawBrand(dc, cx, cy, s);
         drawHeartRate(dc, cx, cy, s);
+        drawDtg(dc, cx, cy, s);
         drawHands(dc, cx, cy, s, t);
-        drawSubscreen(dc, cx, cy, s, t);  // por último: a subjanela tapa os ponteiros
+        drawSubscreen(dc, cx, cy, s);  // por último: a subjanela tapa os ponteiros
     }
 
     function onEnterSleep() as Void {
@@ -133,26 +141,10 @@ class TaticoNavyView extends WatchUi.WatchFace {
         }
     }
 
-    // Arco de bateria abaixo do centro, mais pequeno para dar espaço ao 6/18 grande.
-    private function drawBattery(dc as Dc, cx, cy, s) as Void {
-        var pct = System.getSystemStats().battery;  // 0–100
-        var r = 42 * s;
-
+    // Assinatura da marca por baixo do 12.
+    private function drawBrand(dc as Dc, cx, cy, s) as Void {
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(pw(7, s));
-        dc.drawArc(cx, cy, r, Graphics.ARC_COUNTER_CLOCKWISE, 225, 315);
-        dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(pw(4, s));
-        dc.drawArc(cx, cy, r, Graphics.ARC_COUNTER_CLOCKWISE, 225, 315);
-
-        // drawArc com início = fim desenharia um círculo inteiro
-        if (pct >= 1) {
-            dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-            dc.drawArc(cx, cy, r, Graphics.ARC_COUNTER_CLOCKWISE, 225, 225 + 90 * pct / 100);
-        }
-
-        dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy + 25 * s, Graphics.FONT_XTINY, pct.format("%d") + "%",
+        dc.drawText(cx, cy - 36 * s, Graphics.FONT_XTINY, _brand,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -168,41 +160,29 @@ class TaticoNavyView extends WatchUi.WatchFace {
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Subjanela em três linhas: meteorologia / hora digital / dia e data.
-    // Sem subjanela (outros modelos): hora e dia por baixo do 12.
-    private function drawSubscreen(dc as Dc, cx, cy, s, t) as Void {
-        var time = formatTime(t);
-        var date = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM);
-        var dayTxt = date.day_of_week.toUpper() + " " + date.day.toString();
+    // Data e hora militar (DTG), abaixo do centro:
+    //   linha 1: DDHHMM + letra do fuso (ex.: 091637Z)
+    //   linha 2: MÊS AA (ex.: NOV 26)
+    // Usa sempre 24 horas e a hora local; a letra indica o fuso (Z = UTC).
+    private function drawDtg(dc as Dc, cx, cy, s) as Void {
+        var now = Time.now();
+        var local = Gregorian.info(now, Time.FORMAT_SHORT);
+        var utc = Gregorian.utcInfo(now, Time.FORMAT_SHORT);
 
-        if (_sub == null) {
-            dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, cy - 34 * s, Graphics.FONT_TINY, time,
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(cx, cy - 22 * s, Graphics.FONT_XTINY, dayTxt,
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            return;
-        }
+        var line1 = local.day.format("%02d") + local.hour.format("%02d")
+            + local.min.format("%02d") + zoneLetter(local, utc);
+        var line2 = _months[local.month - 1] + " " + (local.year % 100).format("%02d");
 
-        var sx = _sub.x + _sub.width / 2;
-        var sy = _sub.y + _sub.height / 2;
-        var sr = (_sub.width < _sub.height ? _sub.width : _sub.height) / 2;
-        var u = sr / 30.0;  // escala relativa a uma subjanela de 30 px de raio
-
-        // Fundo invertido em relação ao mostrador
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(sx, sy, sr);
-        dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
-
-        drawWeather(dc, sx, sy - 17 * u, u);
-        dc.drawText(sx, sy, Graphics.FONT_SMALL, time,
+        dc.drawText(cx, cy + 26 * s, Graphics.FONT_SMALL, line1,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(sx, sy + 16 * u, Graphics.FONT_XTINY, dayTxt,
+        dc.drawText(cx, cy + 41 * s, Graphics.FONT_XTINY, line2,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // "18°  [gota] 20%" centrado em (x, y). A cor já vem definida pelo chamador.
-    private function drawWeather(dc as Dc, x, y, u) as Void {
+    // Subjanela: temperatura grande em cima, probabilidade de precipitação em baixo.
+    // Sem subjanela (outros modelos): meteorologia numa linha acima da assinatura.
+    private function drawSubscreen(dc as Dc, cx, cy, s) as Void {
         var temp = "--°";
         var rain = "--%";
         var cond = getConditions();
@@ -219,16 +199,41 @@ class TaticoNavyView extends WatchUi.WatchFace {
             }
         }
 
-        var font = Graphics.FONT_XTINY;
-        var gap = 4 * u;
-        var dropW = 5 * u;
-        var w1 = dc.getTextWidthInPixels(temp, font);
-        var w2 = dc.getTextWidthInPixels(rain, font);
-        var left = x - (w1 + gap + dropW + 1 + w2) / 2;
+        if (_sub == null) {
+            dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+            drawDropLine(dc, cx, cy - 48 * s, s, temp + " ", rain);
+            return;
+        }
 
-        dc.drawText(left, y, font, temp, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-        drawDrop(dc, left + w1 + gap + dropW / 2, y, u);
-        dc.drawText(left + w1 + gap + dropW + 1, y, font, rain,
+        var sx = _sub.x + _sub.width / 2;
+        var sy = _sub.y + _sub.height / 2;
+        var sr = (_sub.width < _sub.height ? _sub.width : _sub.height) / 2;
+        var u = sr / 30.0;  // escala relativa a uma subjanela de 30 px de raio
+
+        // Fundo invertido em relação ao mostrador
+        dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(sx, sy, sr);
+        dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+
+        dc.drawText(sx, sy - 6 * u, Graphics.FONT_MEDIUM, temp,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        drawDropLine(dc, sx, sy + 14 * u, u, "", rain);
+    }
+
+    // Texto opcional + gota + valor, centrado em (x, y). A cor vem do chamador.
+    private function drawDropLine(dc as Dc, x, y, u, prefix, value) as Void {
+        var font = Graphics.FONT_XTINY;
+        var dropW = 5 * u;
+        var gap = 2 * u;
+        var w0 = prefix.length() > 0 ? dc.getTextWidthInPixels(prefix, font) : 0;
+        var w1 = dc.getTextWidthInPixels(value, font);
+        var left = x - (w0 + dropW + gap + w1) / 2;
+
+        if (w0 > 0) {
+            dc.drawText(left, y, font, prefix, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+        drawDrop(dc, left + w0 + dropW / 2, y, u);
+        dc.drawText(left + w0 + dropW + gap, y, font, value,
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -309,6 +314,31 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     // ---------- Dados ----------
 
+    // Letra militar do fuso horário a partir da diferença entre hora local e UTC.
+    // Z = UTC; A–M (sem J) = UTC+1…+12; N–Y = UTC−1…−12; J = fuso não inteiro.
+    private function zoneLetter(local, utc) as String {
+        var diff = (local.hour * 60 + local.min) - (utc.hour * 60 + utc.min);
+        if (diff > 720) {
+            diff -= 1440;
+        } else if (diff < -720) {
+            diff += 1440;
+        }
+        if (diff % 60 != 0) {
+            return "J";
+        }
+        var h = diff / 60;
+        if (h == 0) {
+            return "Z";
+        }
+        if (h > 0 && h <= 12) {
+            return "ABCDEFGHIKLM".substring(h - 1, h);
+        }
+        if (h < 0 && h >= -12) {
+            return "NOPQRSTUVWXY".substring(-h - 1, -h);
+        }
+        return "J";
+    }
+
     // Condições meteorológicas atuais (vêm do telemóvel). null se indisponíveis.
     private function getConditions() {
         if (Toybox has :Weather) {
@@ -330,19 +360,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
             }
         }
         return null;
-    }
-
-    // Respeita a definição de 12/24 horas do relógio.
-    private function formatTime(t) as String {
-        var hour = t.hour;
-        if (!System.getDeviceSettings().is24Hour) {
-            hour = hour % 12;
-            if (hour == 0) {
-                hour = 12;
-            }
-            return hour.format("%d") + ":" + t.min.format("%02d");
-        }
-        return hour.format("%02d") + ":" + t.min.format("%02d");
     }
 
     // ---------- Utilitários ----------
