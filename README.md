@@ -6,13 +6,16 @@ Variante experimental do Tático Claro, de inspiração militar, para o Garmin I
 - Numeração que muda sozinha entre manhã (12, 1–11) e tarde (12, 13–23); eixos cardeais em fonte do sistema, restantes em fonte própria mais pequena
 - Ponteiros tipo espada com faixa interior ("lume") e contorno
 - DTG: dia em grande + HHMM e letra do fuso (ex.: 09 2017Z; Z = UTC)
-- Coordenadas em graus e minutos decimais, numa caixa de cantos chanfrados (última posição conhecida)
+- Coordenadas em graus e minutos decimais, sem moldura, em fonte própria de 10 px (última posição conhecida)
+- Fundo com curvas de nível discretas (duas montanhas e um vale), pontilhadas em xadrez; só no ecrã de 176 px
 - Subjanela: temperatura e probabilidade de precipitação
-- Assinatura "appleton" em minúsculas (`_brand`; usar ™ enquanto a marca não estiver registada)
+- Assinatura "appleton" em minúsculas
 
-Fonte própria: `resources/fonts/small.fnt` + `small.png` (DejaVu Sans Condensed Bold, 11 px, 1 bit).
+Recursos gerados por `tools/gen_assets.py` (Pillow + numpy): terreno (`resources/drawables/topo_*.png`)
+e fontes (`resources/fonts/small.*` 11 px, `coord.*` 10 px, DejaVu Sans Condensed Bold, 1 bit).
+Se mudares posições no mostrador, atualiza as zonas livres no gerador e volta a corrê-lo.
 
-Estado: **EM TESTES** — v4 instalada no relógio; v5 (fonte própria, coordenadas, escolha de fundo) ainda por compilar.
+Estado: **EM TESTES** — v5 no relógio; v6 (terreno, coordenadas 10 px, assinatura sem ®) ainda por compilar.
 
 Tem um ID de aplicação próprio: pode ser instalado ao lado do Tático Claro para comparar.
 

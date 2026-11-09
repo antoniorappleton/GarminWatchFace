@@ -15,7 +15,8 @@ import Toybox.Weather;
 //   eixos cardeais com a fonte do sistema, restantes com a fonte pequena própria.
 // - Ponteiros tipo espada com faixa interior ("lume").
 // - DTG: dia em grande + HHMM e letra do fuso (ex.: 09 2017Z).
-// - Coordenadas em graus e minutos decimais, numa caixa de cantos chanfrados.
+// - Coordenadas em graus e minutos decimais (fonte própria de 10 px).
+// - Fundo com curvas de nível discretas (imagem fixa, só no ecrã de 176 px).
 // - Subjanela: temperatura e probabilidade de precipitação.
 // - Assinatura em minúsculas, sem tocar na subjanela.
 //
@@ -23,10 +24,13 @@ import Toybox.Weather;
 // Medidas em unidades do ecrã de referência (176 px), multiplicadas por s.
 class TaticoNavyView extends WatchUi.WatchFace {
 
-    // Assinatura. Usar "®" só com a marca registada; caso contrário, "™".
-    private var _brand = "appleton®";
+    // Assinatura da marca.
+    private var _brand = "appleton";
 
     private var _small = Graphics.FONT_XTINY;  // substituída pela fonte própria em onLayout
+    private var _coord = Graphics.FONT_XTINY;  // idem, 10 px, para as coordenadas
+    private var _topoBlack = null;             // curvas de nível para fundo branco
+    private var _topoWhite = null;             // curvas de nível para fundo preto
     private var _fg = Graphics.COLOR_BLACK;    // cor dos elementos
     private var _bg = Graphics.COLOR_WHITE;    // cor do fundo
     private var _sleeping = false;
@@ -45,6 +49,12 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     function onLayout(dc as Dc) as Void {
         _small = WatchUi.loadResource(Rez.Fonts.Small);
+        _coord = WatchUi.loadResource(Rez.Fonts.Coord);
+        // O terreno foi desenhado para o ecrã de 176 px; noutros ecrãs fica de fora.
+        if (dc.getWidth() == 176) {
+            _topoBlack = WatchUi.loadResource(Rez.Drawables.TopoBlack);
+            _topoWhite = WatchUi.loadResource(Rez.Drawables.TopoWhite);
+        }
         if (WatchUi has :getSubscreen) {
             _sub = WatchUi.getSubscreen();
         }
@@ -75,6 +85,11 @@ class TaticoNavyView extends WatchUi.WatchFace {
         _bg = dark ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE;
         dc.setColor(_bg, _bg);
         dc.clear();
+
+        var topo = dark ? _topoWhite : _topoBlack;
+        if (topo != null) {
+            dc.drawBitmap(0, 0, topo);
+        }
 
         drawTicks(dc, cx, cy, s);
         drawNumerals(dc, cx, cy, s, t.hour >= 12);
@@ -180,7 +195,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Coordenadas (graus e minutos decimais) numa caixa com os cantos de cima chanfrados.
+    // Coordenadas (graus e minutos decimais), sem moldura, alinhadas à esquerda em coluna.
     private function drawCoordinates(dc as Dc, cx, cy, s) as Void {
         var line1 = "N --°--.---'";
         var line2 = "W ---°--.---'";
@@ -191,34 +206,18 @@ class TaticoNavyView extends WatchUi.WatchFace {
         }
 
         var lineStep = 10 * s;
-        var pad = 3 * s;
-        var textW = dc.getTextWidthInPixels(line2, _small);
-        var w1 = dc.getTextWidthInPixels(line1, _small);
+        var textW = dc.getTextWidthInPixels(line2, _coord);
+        var w1 = dc.getTextWidthInPixels(line1, _coord);
         if (w1 > textW) {
             textW = w1;
         }
-        var bw = textW + 2 * pad + 2 * s;
-        var top = cy + 28 * s;
-        var bh = 2 * lineStep + 3 * s;
-        var x0 = cx - bw / 2;
-        var x1 = cx + bw / 2;
-        var y1 = top + bh;
-        var c = 4 * s;  // tamanho do chanfro
+        var tx = cx - textW / 2;
+        var top = cy + 29 * s;
 
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(1);
-        dc.drawLine(x0 + c, top, x1 - c, top);
-        dc.drawLine(x1 - c, top, x1, top + c);
-        dc.drawLine(x1, top + c, x1, y1);
-        dc.drawLine(x1, y1, x0, y1);
-        dc.drawLine(x0, y1, x0, top + c);
-        dc.drawLine(x0, top + c, x0 + c, top);
-
-        // Texto alinhado à esquerda, para os valores ficarem em coluna
-        var tx = cx - textW / 2;
-        dc.drawText(tx, top + 1.5 * s + lineStep / 2, _small, line1,
+        dc.drawText(tx, top + lineStep / 2, _coord, line1,
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(tx, top + 1.5 * s + lineStep * 1.5, _small, line2,
+        dc.drawText(tx, top + lineStep * 1.5, _coord, line2,
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
