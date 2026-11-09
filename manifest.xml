@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Appleton Labs — Tático Navy (mostrador para Garmin Instinct 3 Solar) -->
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application
+        id="f787f5a80df148878487d202471088ea"
+        type="watchface"
+        name="@Strings.AppName"
+        entry="TaticoNavyApp"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="4.2.0">
+        <iq:products>
+            <!-- Para acrescentar o 50 mm ou os AMOLED, usa o editor de manifesto do VS Code -->
+            <iq:product id="instinct3solar45mm"/>
+        </iq:products>
+        <iq:permissions/>
+        <iq:languages>
+            <iq:language>por</iq:language>
+            <iq:language>spa</iq:language>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
