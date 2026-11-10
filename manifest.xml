@@ -13,6 +13,8 @@
             <iq:product id="instinct3solar45mm"/>
         </iq:products>
         <iq:permissions>
+            <!-- Último ponto GPS do sistema, para as coordenadas -->
+            <iq:uses-permission id="Positioning"/>
             <!-- Altitude e pressão quando não há atividade em curso -->
             <iq:uses-permission id="SensorHistory"/>
         </iq:permissions>

@@ -20,11 +20,11 @@ coordenadas pode ser graus/minutos inteiros (`N38 43`) ou minutos decimais
 (`N3843.5`). As unidades de temperatura, altitude, pressão e velocidade são
 configuráveis.
 
-As coordenadas usam a última posição GPS recebida durante uma atividade e
-guardada no relógio. O mostrador não inicia o GPS. Sem uma posição guardada,
-apresenta marcadores em vez de usar a localização aproximada da meteorologia.
-O ponteiro dos segundos é amostrado na atualização normal do mostrador; não
-há temporizador nem atualização por segundo.
+O mostrador não inicia o GPS. As coordenadas usam, por ordem: a atividade em
+curso, o último ponto GPS do sistema (permissão de posicionamento), a última
+posição guardada pelo mostrador e, por fim, o local da meteorologia vinda do
+telemóvel (aproximado). Só sem nenhuma destas fontes aparecem marcadores.
+Os mostradores analógicos não têm ponteiro dos segundos.
 
 ## Recursos gráficos
 

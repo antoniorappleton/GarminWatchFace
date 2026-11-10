@@ -3,6 +3,7 @@ import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
+import Toybox.Position;
 import Toybox.SensorHistory;
 import Toybox.System;
 import Toybox.Time;
@@ -68,7 +69,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _hourLume = [[11, 2.4], [30.75, 2.4], [36, 0], [30.75, -2.4], [11, -2.4]];
     private var _minBlade = [[6.5, 3.8], [65, 3.8], [75, 0], [65, -3.8], [6.5, -3.8]];
     private var _minLume = [[12.5, 1.6], [64, 1.6], [69, 0], [64, -1.6], [12.5, -1.6]];
-    private var _secondHand = [[-18, 0.8], [72, 0.55], [78, 0], [72, -0.55], [-18, -0.8]];
     private var _pommel = [[-10.75, 0], [-8, 3], [-5.25, 0], [-8, -3]];
 
     // Numerais das 3 às 12: centro x, topo y, cardeal (1 = fonte de 17 px).
@@ -198,12 +198,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
         drawSword(dc, (hour % 12 + min / 60.0) * 30, _hourBlade, _hourLume);
         drawSword(dc, min * 6, _minBlade, _minLume);
-        if (demo == null) {
-            dc.setColor(_bg, _bg);
-            dc.fillPolygon(handPoints(clock.sec * 6, _secondHand, 1));
-            dc.setColor(_fg, _bg);
-            dc.fillPolygon(handPoints(clock.sec * 6, _secondHand, 0));
-        }
         dc.setColor(_bg, _bg);
         dc.fillCircle(88, 88, 6);
         dc.setColor(_fg, _bg);
@@ -535,17 +529,31 @@ class TaticoNavyView extends WatchUi.WatchFace {
     }
 
     // Última posição conhecida, em graus decimais [latitude, longitude], ou null.
-    // Um mostrador não liga o GPS: guarda a posição recebida durante uma atividade.
+    // Um mostrador não liga o GPS nem corre durante as atividades, por isso usa,
+    // por ordem: a atividade em curso, o último ponto GPS do sistema, a posição
+    // guardada e, por fim, o local da meteorologia vinda do telemóvel.
     private function location() {
-        if (_info != null && _info.currentLocation != null) {
-            var deg = _info.currentLocation.toDegrees();
-            if (_loc == null || (deg[0] - _loc[0]).abs() + (deg[1] - _loc[1]).abs() > 0.0005) {
+        var fix = _info != null ? _info.currentLocation : null;
+        if (fix == null) {
+            var pos = Position.getInfo();
+            if (pos != null && pos.accuracy != Position.QUALITY_NOT_AVAILABLE) {
+                fix = pos.position;
+            }
+        }
+        if (fix != null) {
+            var deg = fix.toDegrees();
+            // Sem ponto GPS, alguns relógios devolvem valores fora do globo.
+            if (deg[0].abs() <= 90 && deg[1].abs() <= 180 && (_loc == null
+                || (deg[0] - _loc[0]).abs() + (deg[1] - _loc[1]).abs() > 0.0005)) {
                 _loc = [deg[0], deg[1]];
                 Application.Storage.setValue("loc", _loc);
             }
         }
         if (_loc == null) {
             _loc = Application.Storage.getValue("loc");
+        }
+        if (_loc == null && _cond != null && _cond.observationLocationPosition != null) {
+            return _cond.observationLocationPosition.toDegrees();
         }
         return _loc;
     }
