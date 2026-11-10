@@ -2,10 +2,10 @@ import Toybox.Activity;
 import Toybox.ActivityMonitor;
 import Toybox.Application;
 import Toybox.Application.Properties;
-import Toybox.Complications;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
+import Toybox.SensorHistory;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
@@ -15,14 +15,12 @@ import Toybox.Weather;
 class TaticoClaroView extends WatchUi.WatchFace {
 
     private var _sleeping as Boolean = false;
-    private var _subscriptionsRegistered as Boolean = false;
 
     function initialize() {
         WatchFace.initialize();
     }
 
     function onLayout(dc as Dc) as Void {
-        subscribeToComplications();
     }
 
     function onUpdate(dc as Dc) as Void {
@@ -70,36 +68,32 @@ class TaticoClaroView extends WatchUi.WatchFace {
     private function drawAnalog(dc as Dc, cx as Lang.Numeric, cy as Lang.Numeric,
         s as Lang.Numeric, t as System.ClockTime, fg as Graphics.ColorValue,
         bg as Graphics.ColorValue) as Void {
-        drawAnalogTicks(dc, cx, cy, s, fg);
+        var weatherX = cx + 44 * s;
+        var weatherY = cy - 45 * s;
+        var weatherR = 19 * s;
+
+        drawAnalogTicks(dc, cx, cy, s, fg, weatherX, weatherY, weatherR);
 
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy - 39 * s, Graphics.FONT_XTINY, "Appleton",
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(cx, cy - 65 * s, Graphics.FONT_SMALL, "12",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(cx + 65 * s, cy, Graphics.FONT_SMALL, "3",
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, cy + 66 * s, Graphics.FONT_SMALL, "6",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(cx - 65 * s, cy, Graphics.FONT_SMALL, "9",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         drawHands(dc, cx, cy, s, t, fg, bg, true);
-        drawWeatherBadge(dc, cx + 48 * s, cy - 49 * s, 21 * s, s, fg, bg);
-        drawSubdial(dc, cx - 30 * s, cy + 3 * s, 15 * s, s,
-            getMetricSetting("AnalogLeftDial", "heart_rate"), fg, bg);
-        drawSubdial(dc, cx + 30 * s, cy + 3 * s, 15 * s, s,
-            getMetricSetting("AnalogRightDial", "body_battery"), fg, bg);
-        drawDateBadge(dc, cx, cy + 33 * s, s, fg, bg);
-        drawAnalogBottomFields(dc, cx, cy + 53 * s, s, fg);
+        drawWeatherBadge(dc, weatherX, weatherY, weatherR, s, fg, bg);
+        drawDateBadge(dc, cx, cy + 24 * s, s, fg, bg);
+        drawAnalogBottomFields(dc, cx, cy + 54 * s, s, fg);
     }
 
     private function drawAnalogTicks(dc as Dc, cx as Lang.Numeric, cy as Lang.Numeric,
-        s as Lang.Numeric, fg as Graphics.ColorValue) as Void {
+        s as Lang.Numeric, fg as Graphics.ColorValue, weatherX as Lang.Numeric,
+        weatherY as Lang.Numeric, weatherR as Lang.Numeric) as Void {
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         var rOut = 85 * s;
-        var weatherX = cx + 48 * s;
-        var weatherY = cy - 49 * s;
+        var exclude = weatherR + 2 * s;
         for (var i = 0; i < 60; i++) {
             var rIn = 80 * s;
             var pen = 1;
@@ -112,10 +106,10 @@ class TaticoClaroView extends WatchUi.WatchFace {
             }
             var p1 = polar(cx, cy, i * 6, rIn);
             var p2 = polar(cx, cy, i * 6, rOut);
-            if (insideRectangle(p1, weatherX - 23 * s, weatherY - 23 * s,
-                    46 * s, 46 * s) ||
-                insideRectangle(p2, weatherX - 23 * s, weatherY - 23 * s,
-                    46 * s, 46 * s)) {
+            if (insideRectangle(p1, weatherX - exclude, weatherY - exclude,
+                    2 * exclude, 2 * exclude) ||
+                insideRectangle(p2, weatherX - exclude, weatherY - exclude,
+                    2 * exclude, 2 * exclude)) {
                 continue;
             }
             dc.setPenWidth(pw(pen, s));
@@ -210,18 +204,6 @@ class TaticoClaroView extends WatchUi.WatchFace {
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    private function drawSubdial(dc as Dc, x as Lang.Numeric, y as Lang.Numeric,
-        r as Lang.Numeric, s as Lang.Numeric, metric as String,
-        fg as Graphics.ColorValue, bg as Graphics.ColorValue) as Void {
-        dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(pw(1, s));
-        dc.drawCircle(x, y, r);
-        dc.drawText(x, y - 3 * s, Graphics.FONT_XTINY, getMetricValue(metric),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(x, y + 7 * s, Graphics.FONT_XTINY, getMetricLabel(metric),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-    }
-
     private function drawDateBadge(dc as Dc, cx as Lang.Numeric, y as Lang.Numeric,
         s as Lang.Numeric, fg as Graphics.ColorValue, bg as Graphics.ColorValue) as Void {
         var w = 72 * s;
@@ -260,8 +242,8 @@ class TaticoClaroView extends WatchUi.WatchFace {
         var hourPen = outlined ? 4.5 : 2;
         var minPen = outlined ? 2.5 : 1;
 
-        drawHand(dc, cx, cy, hourAngle, -6 * s, 43 * s, pw(hourPen, s), fg, bg, outlined);
-        drawHand(dc, cx, cy, minAngle, -8 * s, 68 * s, pw(minPen, s), fg, bg, outlined);
+        drawHand(dc, cx, cy, hourAngle, -6 * s, 36 * s, pw(hourPen, s), fg, bg, outlined);
+        drawHand(dc, cx, cy, minAngle, -8 * s, 60 * s, pw(minPen, s), fg, bg, outlined);
 
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(cx, cy, 4 * s);
@@ -307,73 +289,54 @@ class TaticoClaroView extends WatchUi.WatchFace {
         if (metric == "battery") {
             return System.getSystemStats().battery.format("%d") + "%";
         }
+        if (metric == "solar") {
+            var pct = System.getSystemStats().solarIntensity;
+            return pct == null ? "--" : pct.format("%d") + "%";
+        }
         if (metric == "temperature") {
             var weather = getCurrentWeather();
-            if (weather != null) {
-                var temperature = weather.temperature;
-                if (temperature != null) {
-                    return temperature.format("%d") + "°";
-                }
+            if (weather != null && weather.temperature != null) {
+                return weather.temperature.format("%d") + "°";
             }
-            return formatComplicationValue(Complications.COMPLICATION_TYPE_CURRENT_TEMPERATURE, "°");
+            return "--";
         }
         if (metric == "precipitation") {
             var weather = getCurrentWeather();
-            if (weather != null) {
-                var chance = weather.precipitationChance;
-                if (chance != null) {
-                    return chance.format("%d") + "%";
-                }
+            if (weather != null && weather.precipitationChance != null) {
+                return weather.precipitationChance.format("%d") + "%";
             }
             return "--";
         }
-
-        var type = metricType(metric);
-        var value = readComplicationValue(type);
-        if (value == null) {
-            if (metric == "heart_rate") {
-                var heartRate = getHeartRate();
-                return heartRate == null ? "--" : heartRate.toString();
-            }
-            return "--";
+        if (metric == "heart_rate") {
+            var heartRate = getHeartRate();
+            return heartRate == null ? "--" : heartRate.toString();
         }
-
-        var text = value.toString();
-        if (metric == "solar" || metric == "body_battery") {
-            return text + "%";
+        if (metric == "steps") {
+            var steps = ActivityMonitor.getInfo().steps;
+            return steps == null ? "--" : steps.toString();
+        }
+        if (metric == "body_battery") {
+            var value = latestSensorSample((Toybox has :SensorHistory &&
+                SensorHistory has :getBodyBatteryHistory) ?
+                SensorHistory.getBodyBatteryHistory({:period => 1}) : null);
+            return value == null ? "--" : value.format("%d") + "%";
         }
         if (metric == "altitude") {
-            return text + "m";
+            var value = latestSensorSample((Toybox has :SensorHistory &&
+                SensorHistory has :getElevationHistory) ?
+                SensorHistory.getElevationHistory({:period => 1}) : null);
+            return value == null ? "--" : value.format("%d") + "m";
         }
-        return text;
+        return "--";
     }
 
-    private function metricType(metric as String) as Complications.Type {
-        switch (metric) {
-            case "heart_rate": return Complications.COMPLICATION_TYPE_HEART_RATE;
-            case "body_battery": return Complications.COMPLICATION_TYPE_BODY_BATTERY;
-            case "altitude": return Complications.COMPLICATION_TYPE_ALTITUDE;
-            case "steps": return Complications.COMPLICATION_TYPE_STEPS;
-            case "solar": return Complications.COMPLICATION_TYPE_SOLAR_INPUT;
+    private function latestSensorSample(
+        iterator as SensorHistory.SensorHistoryIterator?) as Numeric? {
+        if (iterator == null) {
+            return null;
         }
-        return Complications.COMPLICATION_TYPE_INVALID;
-    }
-
-    private function formatComplicationValue(type as Complications.Type, suffix as String) as String {
-        var value = readComplicationValue(type);
-        return value == null ? "--" : value.toString() + suffix;
-    }
-
-    private function readComplicationValue(type as Complications.Type) as Complications.Value? {
-        var iterator = Complications.getComplications();
-        var complication = iterator.next();
-        while (complication != null) {
-            if (complication.getType() == type) {
-                return complication.value;
-            }
-            complication = iterator.next();
-        }
-        return null;
+        var sample = iterator.next();
+        return sample == null ? null : sample.data;
     }
 
     private function getCurrentWeather() as Weather.CurrentConditions? {
@@ -439,37 +402,6 @@ class TaticoClaroView extends WatchUi.WatchFace {
             case 8: return "solar";
         }
         return fallback;
-    }
-
-    private function subscribeToComplications() as Void {
-        if (_subscriptionsRegistered) {
-            return;
-        }
-
-        Complications.registerComplicationChangeCallback(method(:onComplicationChanged));
-        var iterator = Complications.getComplications();
-        var complication = iterator.next();
-        while (complication != null) {
-            var type = complication.getType();
-            if (type != null && isMetricComplication(type)) {
-                Complications.subscribeToUpdates(new Complications.Id(type));
-            }
-            complication = iterator.next();
-        }
-        _subscriptionsRegistered = true;
-    }
-
-    function onComplicationChanged(id as Complications.Id) as Void {
-        WatchUi.requestUpdate();
-    }
-
-    private function isMetricComplication(type as Complications.Type) as Boolean {
-        return type == Complications.COMPLICATION_TYPE_STEPS ||
-            type == Complications.COMPLICATION_TYPE_ALTITUDE ||
-            type == Complications.COMPLICATION_TYPE_HEART_RATE ||
-            type == Complications.COMPLICATION_TYPE_BODY_BATTERY ||
-            type == Complications.COMPLICATION_TYPE_SOLAR_INPUT ||
-            type == Complications.COMPLICATION_TYPE_CURRENT_TEMPERATURE;
     }
 
     private function insideRectangle(point as Array<Lang.Numeric>, x as Lang.Numeric,

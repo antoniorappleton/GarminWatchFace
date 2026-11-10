@@ -11,32 +11,6 @@
             <listEntry value="1">@Strings.ThemeDark</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.AnalogLeftDial" title="@Strings.AnalogLeftDialTitle">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.MetricDate</listEntry>
-            <listEntry value="1">@Strings.MetricBattery</listEntry>
-            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
-            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
-            <listEntry value="4">@Strings.MetricAltitude</listEntry>
-            <listEntry value="5">@Strings.MetricSteps</listEntry>
-            <listEntry value="6">@Strings.MetricTemperature</listEntry>
-            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
-            <listEntry value="8">@Strings.MetricSolar</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.AnalogRightDial" title="@Strings.AnalogRightDialTitle">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.MetricDate</listEntry>
-            <listEntry value="1">@Strings.MetricBattery</listEntry>
-            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
-            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
-            <listEntry value="4">@Strings.MetricAltitude</listEntry>
-            <listEntry value="5">@Strings.MetricSteps</listEntry>
-            <listEntry value="6">@Strings.MetricTemperature</listEntry>
-            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
-            <listEntry value="8">@Strings.MetricSolar</listEntry>
-        </settingConfig>
-    </setting>
     <setting propertyKey="@Properties.AnalogBottomLeft" title="@Strings.AnalogBottomLeftTitle">
         <settingConfig type="list">
             <listEntry value="0">@Strings.MetricDate</listEntry>

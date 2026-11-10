@@ -6,8 +6,6 @@
     <string id="ModeDigital">Digital</string>
     <string id="ThemeLight">Claro</string>
     <string id="ThemeDark">Escuro</string>
-    <string id="AnalogLeftDialTitle">Analógico: mostrador esquerdo</string>
-    <string id="AnalogRightDialTitle">Analógico: mostrador direito</string>
     <string id="AnalogBottomLeftTitle">Analógico: campo inferior esquerdo</string>
     <string id="AnalogBottomCenterTitle">Analógico: campo inferior central</string>
     <string id="AnalogBottomRightTitle">Analógico: campo inferior direito</string>
