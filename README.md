@@ -1,4 +1,4 @@
-# Tático Claro
+# GarminWatchFace — Tático Claro
 
 Mostrador personalizável para o Garmin Instinct 3 Solar, inspirado nos exemplos
 analógico claro, analógico escuro e digital escuro.
@@ -17,7 +17,7 @@ IQ depois de instalar/sincronizar a aplicação.
 
 ## Correr no simulador
 
-1. Abre esta pasta no VS Code (com a extensão Monkey C e o SDK instalados — ver o guia).
+1. Abre esta pasta no VS Code com a extensão Monkey C e o SDK Connect IQ instalados.
 2. Abre `source/TaticoClaroView.mc` e carrega em F5.
 3. Escolhe o dispositivo `instinct3solar45mm`.
 
