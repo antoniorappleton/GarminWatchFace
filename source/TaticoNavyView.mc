@@ -585,8 +585,9 @@ class TaticoNavyView extends WatchUi.WatchFace {
         }
         var lat = Math.toRadians(loc[0]);
         var lonDays = loc[1] / 360.0d;
-        var days = (Time.now().value() - 946728000) / 86400.0d;
-        var noon = Math.round(days + lonDays) - lonDays;      // meio-dia solar de hoje
+        // Dia do calendário local, para a meia-noite não trocar para a véspera.
+        var days = (Time.now().value() + System.getClockTime().timeZoneOffset - 946728000) / 86400.0d;
+        var noon = Math.floor(days + 0.5) - lonDays;          // meio-dia solar de hoje
         var m = Math.toRadians(357.5291d + 0.98560028d * noon);
         var l = m + Math.toRadians(1.9148 * Math.sin(m) + 0.02 * Math.sin(2 * m) + 282.9372);
         var transit = noon + 0.0053 * Math.sin(m) - 0.0069 * Math.sin(2 * l);
