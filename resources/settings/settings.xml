@@ -1,5 +1,185 @@
 <settings>
-    <setting propertyKey="@Properties.DarkMode" title="@Strings.DarkModeTitle">
+    <setting propertyKey="@Properties.Style" title="@Strings.StyleTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.StyleNavy</listEntry>
+            <listEntry value="1">@Strings.StyleZulu</listEntry>
+            <listEntry value="2">@Strings.StyleSurf</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.Theme" title="@Strings.ThemeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ThemeAuto</listEntry>
+            <listEntry value="1">@Strings.ThemeLight</listEntry>
+            <listEntry value="2">@Strings.ThemeDark</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ShowDTG" title="@Strings.ShowDTGTitle">
         <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.ShowCoordinates" title="@Strings.ShowCoordinatesTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.CoordFormat" title="@Strings.CoordFormatTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.CoordDegreesMinutes</listEntry>
+            <listEntry value="1">@Strings.CoordDecimalMinutes</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ShowSignature" title="@Strings.ShowSignatureTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.TemperatureUnit" title="@Strings.TemperatureUnitTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.UnitDevice</listEntry>
+            <listEntry value="1">@Strings.UnitCelsius</listEntry>
+            <listEntry value="2">@Strings.UnitFahrenheit</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AltitudeUnit" title="@Strings.AltitudeUnitTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.UnitDevice</listEntry>
+            <listEntry value="1">@Strings.UnitMeters</listEntry>
+            <listEntry value="2">@Strings.UnitFeet</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.PressureUnit" title="@Strings.PressureUnitTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.UnitHpa</listEntry>
+            <listEntry value="1">@Strings.UnitInHg</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.SpeedUnit" title="@Strings.SpeedUnitTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.UnitKnots</listEntry>
+            <listEntry value="1">@Strings.UnitKmh</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.NavyBubble1" title="@Strings.NavyBubble1Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.NavyBubble2" title="@Strings.NavyBubble2Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ZuluBubble1" title="@Strings.ZuluBubble1Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ZuluBubble2" title="@Strings.ZuluBubble2Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.SurfBubble1" title="@Strings.SurfBubble1Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.SurfBubble2" title="@Strings.SurfBubble2Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldTemp</listEntry>
+            <listEntry value="1">@Strings.FieldRain</listEntry>
+            <listEntry value="2">@Strings.FieldWind</listEntry>
+            <listEntry value="3">@Strings.FieldMoon</listEntry>
+            <listEntry value="4">@Strings.FieldBattery</listEntry>
+            <listEntry value="5">@Strings.FieldAlt</listEntry>
+            <listEntry value="6">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="7">@Strings.FieldCardinal</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ZuluField1" title="@Strings.ZuluField1Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldAlt</listEntry>
+            <listEntry value="1">@Strings.FieldPressure</listEntry>
+            <listEntry value="2">@Strings.FieldTemp</listEntry>
+            <listEntry value="3">@Strings.FieldRain</listEntry>
+            <listEntry value="4">@Strings.FieldWind</listEntry>
+            <listEntry value="5">@Strings.FieldSunrise</listEntry>
+            <listEntry value="6">@Strings.FieldSunset</listEntry>
+            <listEntry value="7">@Strings.FieldMoon</listEntry>
+            <listEntry value="8">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="9">@Strings.None</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.ZuluField2" title="@Strings.ZuluField2Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldAlt</listEntry>
+            <listEntry value="1">@Strings.FieldPressure</listEntry>
+            <listEntry value="2">@Strings.FieldTemp</listEntry>
+            <listEntry value="3">@Strings.FieldRain</listEntry>
+            <listEntry value="4">@Strings.FieldWind</listEntry>
+            <listEntry value="5">@Strings.FieldSunrise</listEntry>
+            <listEntry value="6">@Strings.FieldSunset</listEntry>
+            <listEntry value="7">@Strings.FieldMoon</listEntry>
+            <listEntry value="8">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="9">@Strings.None</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.SurfLine1" title="@Strings.SurfLine1Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldAlt</listEntry>
+            <listEntry value="1">@Strings.FieldPressure</listEntry>
+            <listEntry value="2">@Strings.FieldTemp</listEntry>
+            <listEntry value="3">@Strings.FieldRain</listEntry>
+            <listEntry value="4">@Strings.FieldWind</listEntry>
+            <listEntry value="5">@Strings.FieldSunrise</listEntry>
+            <listEntry value="6">@Strings.FieldSunset</listEntry>
+            <listEntry value="7">@Strings.FieldMoon</listEntry>
+            <listEntry value="8">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="9">@Strings.None</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.SurfLine2" title="@Strings.SurfLine2Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldAlt</listEntry>
+            <listEntry value="1">@Strings.FieldPressure</listEntry>
+            <listEntry value="2">@Strings.FieldTemp</listEntry>
+            <listEntry value="3">@Strings.FieldRain</listEntry>
+            <listEntry value="4">@Strings.FieldWind</listEntry>
+            <listEntry value="5">@Strings.FieldSunrise</listEntry>
+            <listEntry value="6">@Strings.FieldSunset</listEntry>
+            <listEntry value="7">@Strings.FieldMoon</listEntry>
+            <listEntry value="8">@Strings.FieldAzimuth</listEntry>
+            <listEntry value="9">@Strings.None</listEntry>
+        </settingConfig>
     </setting>
 </settings>

@@ -1,3 +1,22 @@
 <properties>
-    <property id="DarkMode" type="boolean">false</property>
+    <property id="Style" type="number">0</property>
+    <property id="Theme" type="number">0</property>
+    <property id="ShowDTG" type="boolean">true</property>
+    <property id="ShowCoordinates" type="boolean">true</property>
+    <property id="CoordFormat" type="number">1</property>
+    <property id="ShowSignature" type="boolean">true</property>
+    <property id="TemperatureUnit" type="number">0</property>
+    <property id="AltitudeUnit" type="number">0</property>
+    <property id="PressureUnit" type="number">0</property>
+    <property id="SpeedUnit" type="number">0</property>
+    <property id="NavyBubble1" type="number">0</property>
+    <property id="NavyBubble2" type="number">1</property>
+    <property id="ZuluBubble1" type="number">6</property>
+    <property id="ZuluBubble2" type="number">7</property>
+    <property id="SurfBubble1" type="number">2</property>
+    <property id="SurfBubble2" type="number">3</property>
+    <property id="ZuluField1" type="number">0</property>
+    <property id="ZuluField2" type="number">1</property>
+    <property id="SurfLine1" type="number">5</property>
+    <property id="SurfLine2" type="number">6</property>
 </properties>

@@ -12,7 +12,10 @@
             <!-- Para acrescentar o 50 mm ou os AMOLED, usa o editor de manifesto do VS Code -->
             <iq:product id="instinct3solar45mm"/>
         </iq:products>
-        <iq:permissions/>
+        <iq:permissions>
+            <!-- Altitude e pressão quando não há atividade em curso -->
+            <iq:uses-permission id="SensorHistory"/>
+        </iq:permissions>
         <iq:languages>
             <iq:language>por</iq:language>
             <iq:language>spa</iq:language>

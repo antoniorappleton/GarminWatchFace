@@ -1,13 +1,16 @@
-"""Gera os recursos gráficos do Tático Navy (ecrã de referência: 176 x 176 px, 1 bit).
+"""Gera os recursos gráficos do Tático Navy (ecrã de 176 x 176 px, 1 bit).
 
-- resources/drawables/topo_black.png e topo_white.png
-  Curvas de nível (opção E: duas montanhas e um vale), pontilhadas em xadrez
-  para parecerem cinzento, com zonas livres à volta dos elementos fixos.
-- resources/fonts/small.fnt/.png   (11 px) números secundários e assinatura
-- resources/fonts/coord.fnt/.png   (10 px) coordenadas
+Tudo o que o mostrador desenha, exceto os ponteiros, vem de fontes de píxeis:
+  f9, f13, f17   texto (DejaVu Sans Condensed Bold, limiar fixo, sem cinzentos)
+  f28            HHMM + fuso do Zulu
+  f46            dia do DTG do Zulu, já em xadrez ("cinzento"), nas duas paridades
+  icons          setas de vento, fases da lua, triângulos, onda, régua, bússola
+  ring           anel das marcas dos mostradores analógicos, em 4 mosaicos de 88 px
 
 Uso:  python tools/gen_assets.py     (a partir da pasta do projeto)
-Requer: Pillow e numpy. As posições abaixo têm de acompanhar TaticoNavyView.mc.
+Requer: Pillow e numpy, e o ficheiro DejaVuSansCondensed-Bold.ttf nesta pasta
+(https://dejavu-fonts.github.io, licença livre).
+As posições no ecrã estão em source/TaticoNavyView.mc.
 """
 import math
 import os
@@ -15,111 +18,252 @@ import os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONT_TTF = "DejaVuSansCondensed-Bold.ttf"  # fonte livre (licença DejaVu/Bitstream Vera)
-W = 176
-CX = CY = 88
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
+FONT_TTF = os.path.join(TOOLS, "DejaVuSansCondensed-Bold.ttf")
+THRESHOLD = 110  # 1 bit: o ecrã MIP só tem preto e branco
 
-# ---------- Terreno ----------
-
-LEVELS = 6  # curvas por unidade de altura (opção E = 6; opção F = 8)
-
-
-def terrain():
-    yy, xx = np.mgrid[0:W, 0:W].astype(float)
-    wx = xx + 4 * np.sin(yy / 13.0) + 2.5 * np.sin(yy / 6.0 + xx / 17.0)
-    wy = yy + 4 * np.cos(xx / 14.0) + 2.5 * np.cos(xx / 7.0 - yy / 19.0)
-
-    def cone(px, py, radius, amp):
-        d = np.sqrt((wx - px) ** 2 + (wy - py) ** 2)
-        return amp * np.clip(1 - d / radius, 0, None) ** 1.15
-
-    f = cone(42, 122, 52, 1.0) + cone(58, 46, 46, 0.85) - cone(138, 124, 46, 0.8)
-    lev = np.floor(f * LEVELS)
-    edge = (lev != np.roll(lev, 1, 0)) | (lev != np.roll(lev, 1, 1))
-    checker = ((xx + yy).astype(int) % 2) == 0  # um píxel sim, outro não: "cinzento"
-    return edge & checker, xx, yy
+UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+DIGITS = "0123456789"
+TEXT = DIGITS + UPPER + "abcdefghijklmnopqrstuvwxyz" + " .:%-/"
 
 
-def free_zones(xx, yy):
-    """Zonas onde o terreno não é desenhado (margem à volta dos elementos fixos)."""
-    keep_out = np.zeros((W, W), bool)
-    # anel das marcas e tudo o que fica fora do mostrador
-    keep_out |= (xx - CX) ** 2 + (yy - CY) ** 2 > 76 ** 2
-
-    def rect(x0, y0, x1, y1):
-        return (xx >= x0) & (xx <= x1) & (yy >= y0) & (yy <= y1)
-
-    def circle(x, y, r):
-        return (xx - x) ** 2 + (yy - y) ** 2 <= r ** 2
-
-    for i in range(1, 13):
-        a = math.radians(i * 30)
-        cardinal = i % 3 == 0
-        r = 63 if cardinal else 70
-        keep_out |= circle(CX + r * math.sin(a), CY - r * math.cos(a), 13 if cardinal else 10)
-    keep_out |= rect(CX - 30, CY - 41, CX + 27, CY - 23)   # assinatura
-    keep_out |= rect(CX - 40, CY + 5, CX + 40, CY + 27)    # DTG
-    keep_out |= rect(CX - 39, CY + 26, CX + 39, CY + 51)   # coordenadas
-    keep_out |= circle(CX, CY, 9)                          # eixo dos ponteiros
-    return keep_out
+def art(*rows):
+    return np.array([[c == "#" for c in row] for row in rows], bool)
 
 
-def make_topo():
-    topo, xx, yy = terrain()
-    topo &= ~free_zones(xx, yy)
-    out = os.path.join(ROOT, "resources", "drawables")
-    for name, rgb in (("topo_black.png", (0, 0, 0)), ("topo_white.png", (255, 255, 255))):
-        img = Image.new("RGBA", (W, W), (0, 0, 0, 0))
-        px = img.load()
-        for y, x in zip(*np.nonzero(topo)):
-            px[int(x), int(y)] = rgb + (255,)
-        img.save(os.path.join(out, name))
-    print("terreno:", int(topo.sum()), "píxeis")
+# ---------- Glifos de texto ----------
+
+def text_glyph(font, ch):
+    """Devolve (código, máscara, xoffset, yoffset, avanço) de um carácter."""
+    adv = int(round(font.getlength(ch)))
+    asc, desc = font.getmetrics()
+    img = Image.new("L", (adv + 8, asc + desc + 8), 0)
+    ImageDraw.Draw(img).text((4, 4), ch, font=font, fill=255)
+    mask = np.asarray(img) >= THRESHOLD
+    ys, xs = np.nonzero(mask)
+    if len(ys) == 0:
+        return (ord(ch), np.zeros((1, 1), bool), 0, 0, adv)
+    return (ord(ch), mask[ys.min():ys.max() + 1, xs.min():xs.max() + 1],
+            int(xs.min()) - 4, int(ys.min()) - 4, adv)
 
 
-# ---------- Fontes (formato BMFont de texto) ----------
-
-def make_font(name, size, chars):
+def text_font(name, size, chars, degree=None):
     font = ImageFont.truetype(FONT_TTF, size)
     asc, desc = font.getmetrics()
-    glyphs = []
-    for ch in chars:
-        bbox = font.getbbox(ch)
-        adv = int(round(font.getlength(ch)))
-        w = max(1, bbox[2] - bbox[0])
-        h = max(1, bbox[3] - bbox[1])
-        g = Image.new("L", (w, h), 0)
-        ImageDraw.Draw(g).text((-bbox[0], -bbox[1]), ch, font=font, fill=255)
-        g = g.point(lambda v: 255 if v >= 110 else 0)  # 1 bit: o ecrã MIP é preto e branco
-        glyphs.append((ch, g, bbox[0], bbox[1], 3 if ch == " " else adv))
+    glyphs = [text_glyph(font, ch) for ch in chars]
+    if degree is not None:
+        mask, xo, yo, adv = degree
+        glyphs.append((ord("°"), mask, xo, yo, adv))
+    return name, asc + desc, asc, glyphs
 
-    sheet_w, x, y, row_h, pos = 128, 0, 0, 0, []
-    for _, g, _, _, _ in glyphs:
-        if x + g.width + 1 > sheet_w:
+
+def checker(glyphs):
+    """Dígitos em xadrez, nas duas paridades: '0'-'9' para origem (x + y) par, 'a'-'j' para ímpar.
+    Assim o xadrez fica sempre alinhado ao ecrã, seja qual for a posição do dígito."""
+    out = []
+    for parity, first in ((1, ord("0")), (0, ord("a"))):
+        for code, mask, xo, yo, adv in glyphs:
+            yy, xx = np.mgrid[0:mask.shape[0], 0:mask.shape[1]]
+            lit = mask & (((xx + xo + yy + yo) % 2) == parity)
+            out.append((first + code - ord("0"), lit, xo, yo, adv))
+    return out
+
+
+# ---------- Ícones ----------
+
+ARROW_NW = art(
+    "#..........",
+    "####.......",
+    ".######....",
+    ".#####.....",
+    ".#####.....",
+    "..#####....",
+    "..#..###...",
+    "......###..",
+    ".......###.",
+    "........###")
+ARROW_N = art(
+    "....#....",
+    "...###...",
+    "..#####..",
+    ".#######.",
+    "...###...",
+    "...###...",
+    "...###...",
+    "...###...",
+    "...###...",
+    "...###...")
+TRI_UP = art("...#...", "...#...", "..###..", "..###..", ".#####.", ".#####.", "#######")
+WAVE = art(
+    "........###.........###.........###.........###..",
+    ".......#####.......#####.......#####.......#####.",
+    "#.....##...##.....##...##.....##...##.....##...##",
+    "##...##.....##...##.....##...##.....##...##.....#",
+    ".#####.......#####.......#####.......#####.......",
+    "..###.........###.........###.........###........")
+MOON_RING = art(
+    "...#####...",
+    "..#.....#..",
+    ".#.......#.",
+    "#.........#",
+    "#.........#",
+    "#.........#",
+    "#.........#",
+    "#.........#",
+    ".#.......#.",
+    "..#.....#..",
+    "...#####...")
+# Marcas da subjanela do azimute (coordenadas dentro da caixa de 62 px).
+COMPASS = [(31, 4), (31, 5), (31, 6), (17, 7), (44, 7), (17, 8), (44, 8), (18, 9), (43, 9),
+           (7, 17), (8, 17), (53, 17), (54, 17), (9, 18), (52, 18), (4, 31), (5, 31), (6, 31),
+           (56, 31), (57, 31), (58, 31), (9, 43), (52, 43), (7, 44), (8, 44), (53, 44), (54, 44),
+           (18, 52), (43, 52), (17, 53), (44, 53), (17, 54), (44, 54), (31, 56), (31, 57), (31, 58)]
+
+
+def moon(phase):
+    """Fase 0..7 (0 = nova, 2 = quarto crescente, 4 = cheia, 6 = quarto minguante)."""
+    m = MOON_RING.copy()
+    k = math.cos(2 * math.pi * phase / 8)  # posição do terminador: 1 = nova, -1 = cheia
+    for y in range(11):
+        xs = np.nonzero(MOON_RING[y])[0]
+        left, right = xs.min(), xs.max()
+        half = (right - left) / 2.0
+        for x in range(left, right + 1):
+            rel = (x - 5) / half if half else 0
+            if phase <= 4 and rel >= k - 1e-6 and phase != 0:
+                m[y, x] = True
+            if phase > 4 and -rel >= k - 1e-6:
+                m[y, x] = True
+    return m
+
+
+def icon_font():
+    g = []
+    # Setas de vento: A = norte, depois de 45 em 45 graus no sentido dos ponteiros.
+    arrows = [ARROW_N, np.rot90(ARROW_NW, -1), np.rot90(ARROW_N, -1), np.rot90(ARROW_NW, -2),
+              np.rot90(ARROW_N, -2), np.rot90(ARROW_NW, -3), np.rot90(ARROW_N, -3), ARROW_NW]
+    for i, a in enumerate(arrows):
+        g.append((ord("A") + i, a, (11 - a.shape[1]) // 2, 0, 11))
+    for i in range(8):
+        g.append((ord("M") + i, moon(i), 0, 0, 14))
+    g.append((ord("^"), TRI_UP, 0, 0, 8))
+    g.append((ord("v"), TRI_UP[::-1], 0, 0, 8))
+    g.append((ord("~"), WAVE, 0, 0, 50))
+    ruler = np.zeros((4, 61), bool)
+    ruler[2:, ::4] = True
+    ruler[:, ::20] = True
+    g.append((ord("r"), ruler, 0, 0, 62))
+    compass = np.zeros((62, 62), bool)
+    for x, y in COMPASS:
+        compass[y, x] = True
+    g.append((ord("c"), compass, 0, 0, 62))
+    return "icons", 62, 62, g
+
+
+# ---------- Anel das marcas ----------
+
+def ring_font():
+    """Minutos finos, horas médias, eixos cardeais grossos; centro em (88, 88)."""
+    img = Image.new("1", (176, 176), 0)
+    d = ImageDraw.Draw(img)
+    for i in range(60):
+        r_in, pen = (75, 5) if i % 15 == 0 else (78, 3) if i % 5 == 0 else (82, 1)
+        a = math.radians(i * 6)
+        sn, cs = math.sin(a), math.cos(a)
+        d.line([(88 + r_in * sn, 88 - r_in * cs), (88 + 86 * sn, 88 - 86 * cs)], fill=1, width=pen)
+    ring = np.asarray(img).astype(bool)
+    g = []
+    for i in range(4):
+        x, y = 88 * (i % 2), 88 * (i // 2)
+        g.append((ord("0") + i, ring[y:y + 88, x:x + 88], 0, 0, 88))
+    return "ring", 88, 88, g
+
+
+# ---------- Fundo topográfico monocromático ----------
+
+def topography():
+    yy, xx = np.mgrid[0:176, 0:176]
+    keep_out = np.zeros((176, 176), bool)
+    for x0, y0, x1, y1 in (
+        (107, 0, 176, 75), (60, 32, 112, 47), (10, 90, 166, 134),
+        (0, 0, 176, 4), (0, 172, 176, 176),
+    ):
+        keep_out[y0:y1, x0:x1] = True
+    for cx, y, width, height in (
+        (150, 78, 20, 18), (148, 116, 22, 18), (122, 142, 18, 18),
+        (88, 140, 18, 18), (53, 142, 18, 18), (28, 117, 18, 18),
+        (26, 78, 18, 18), (28, 47, 18, 18), (53, 22, 18, 18), (88, 16, 18, 18),
+    ):
+        x0 = max(0, cx - width // 2)
+        y0 = max(0, y)
+        keep_out[y0:min(176, y0 + height), x0:min(176, x0 + width)] = True
+
+    for dark in (False, True):
+        mask = Image.new("L", (176, 176), 0)
+        draw = ImageDraw.Draw(mask)
+        for cx, cy, rx, ry in ((38, 51, 15, 9), (38, 51, 27, 16), (38, 51, 40, 24),
+                               (145, 127, 13, 8), (145, 127, 24, 15), (145, 127, 36, 22)):
+            draw.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), outline=255, width=1)
+        for base, phase in ((20, 0), (31, 14), (145, 24), (157, 8)):
+            points = []
+            for x in range(-8, 185):
+                y = base + 5 * math.sin((x + phase) / 22) + 2 * math.sin((x + phase) / 8)
+                points.append((x, y))
+            draw.line(points, fill=255, width=1)
+
+        lines = np.asarray(mask) > 0
+        stipple = lines & (((xx + 2 * yy) % 4) == 0) & ~keep_out
+        pixels = np.full((176, 176), 0 if dark else 255, np.uint8)
+        pixels[stipple] = 255 if dark else 0
+        Image.fromarray(pixels).convert("1").save(
+            os.path.join(ROOT, "resources", "drawables",
+                         "topo_dark.png" if dark else "topo_light.png"))
+
+
+# ---------- Escrita (formato BMFont de texto) ----------
+
+def write_font(name, line_height, base, glyphs):
+    sheet_w = 256
+    x = y = row_h = 0
+    pos = []
+    for _, m, _, _, _ in glyphs:
+        h, w = m.shape
+        if x + w + 1 > sheet_w:
             x, y, row_h = 0, y + row_h + 1, 0
         pos.append((x, y))
-        x += g.width + 1
-        row_h = max(row_h, g.height)
-    sheet_h = 1 << (y + row_h).bit_length()
+        x += w + 1
+        row_h = max(row_h, h)
+    sheet_h = 1 << (y + row_h - 1).bit_length()
 
-    sheet = Image.new("RGBA", (sheet_w, sheet_h), (255, 255, 255, 0))
+    sheet = np.zeros((sheet_h, sheet_w, 4), np.uint8)
+    sheet[..., :3] = 255
     lines = []
-    for (ch, g, xo, yo, adv), (px, py) in zip(glyphs, pos):
-        sheet.paste(Image.new("RGBA", g.size, (255, 255, 255, 255)), (px, py), g)
-        lines.append(f"char id={ord(ch)} x={px} y={py} width={g.width} height={g.height} "
+    for (code, m, xo, yo, adv), (px, py) in zip(glyphs, pos):
+        h, w = m.shape
+        sheet[py:py + h, px:px + w, 3] = m * 255
+        lines.append(f"char id={code} x={px} y={py} width={w} height={h} "
                      f"xoffset={xo} yoffset={yo} xadvance={adv} page=0 chnl=15")
     out = os.path.join(ROOT, "resources", "fonts")
-    sheet.save(os.path.join(out, name + ".png"))
+    Image.fromarray(sheet, "RGBA").save(os.path.join(out, name + ".png"))
     with open(os.path.join(out, name + ".fnt"), "w", encoding="utf-8") as f:
-        f.write(f'info face="{name}" size={size} bold=1 italic=0 charset="" unicode=1 '
+        f.write(f'info face="{name}" size={line_height} bold=1 italic=0 charset="" unicode=1 '
                 'stretchH=100 smooth=0 aa=1 padding=0,0,0,0 spacing=1,1\n')
-        f.write(f"common lineHeight={asc + desc} base={asc} scaleW={sheet_w} scaleH={sheet_h} pages=1 packed=0\n")
+        f.write(f"common lineHeight={line_height} base={base} scaleW={sheet_w} scaleH={sheet_h} "
+                "pages=1 packed=0\n")
         f.write(f'page id=0 file="{name}.png"\nchars count={len(lines)}\n' + "\n".join(lines) + "\n")
-    print("fonte", name, size, "px:", len(chars), "caracteres")
+    print(f"{name}: {len(glyphs)} glifos, folha {sheet_w}x{sheet_h}")
 
 
 if __name__ == "__main__":
-    make_topo()
-    make_font("small", 11, "0123456789 aelnopt")
-    make_font("coord", 10, "0123456789NSEW°'.- ")
+    # Símbolo de grau desenhado à mão (anel de 5 px), como na folha de design.
+    ring5 = art(".###.", "#...#", "#...#", "#...#", ".###.")
+    write_font(*text_font("f9", 9, TEXT))
+    write_font(*text_font("f13", 13, TEXT, degree=(ring5[1:, 1:] | ring5[:-1, :-1], 1, 3, 6)))
+    write_font(*text_font("f17", 17, DIGITS + "-", degree=(ring5, 2, 3, 8)))
+    write_font(*text_font("f28", 28, DIGITS + UPPER))
+    name, lh, base, glyphs = text_font("f46", 46, DIGITS)
+    write_font(name, lh, base, checker(glyphs))
+    write_font(*icon_font())
+    write_font(*ring_font())
+    topography()

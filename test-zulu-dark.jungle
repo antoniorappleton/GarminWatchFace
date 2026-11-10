@@ -1,0 +1,4 @@
+# Zulu escuro com os valores fixos da folha de produção.
+project.manifest = test-manifest.xml
+base.sourcePath = source;test/common;test/cases/zulu-dark
+base.excludeAnnotations = live
