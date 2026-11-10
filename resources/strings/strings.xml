@@ -1,3 +1,27 @@
 <strings>
     <string id="AppName">Tático Claro</string>
+    <string id="DisplayModeTitle">Estilo do mostrador</string>
+    <string id="ThemeTitle">Tema</string>
+    <string id="ModeAnalog">Analógico</string>
+    <string id="ModeDigital">Digital</string>
+    <string id="ThemeLight">Claro</string>
+    <string id="ThemeDark">Escuro</string>
+    <string id="AnalogLeftDialTitle">Analógico: mostrador esquerdo</string>
+    <string id="AnalogRightDialTitle">Analógico: mostrador direito</string>
+    <string id="AnalogBottomLeftTitle">Analógico: campo inferior esquerdo</string>
+    <string id="AnalogBottomCenterTitle">Analógico: campo inferior central</string>
+    <string id="AnalogBottomRightTitle">Analógico: campo inferior direito</string>
+    <string id="DigitalTopTitle">Digital: campo superior direito</string>
+    <string id="DigitalBottomLeftTitle">Digital: campo inferior esquerdo</string>
+    <string id="DigitalBottomCenterTitle">Digital: campo inferior central</string>
+    <string id="DigitalBottomRightTitle">Digital: campo inferior direito</string>
+    <string id="MetricDate">Data</string>
+    <string id="MetricBattery">Bateria</string>
+    <string id="MetricHeartRate">Frequência cardíaca</string>
+    <string id="MetricBodyBattery">Body Battery</string>
+    <string id="MetricAltitude">Altitude</string>
+    <string id="MetricSteps">Passos</string>
+    <string id="MetricTemperature">Temperatura</string>
+    <string id="MetricPrecipitation">Probabilidade de precipitação</string>
+    <string id="MetricSolar">Carga solar</string>
 </strings>

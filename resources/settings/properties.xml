@@ -1,0 +1,13 @@
+<properties>
+    <property id="DisplayMode" type="number">0</property>
+    <property id="Theme" type="number">0</property>
+    <property id="AnalogLeftDial" type="number">2</property>
+    <property id="AnalogRightDial" type="number">3</property>
+    <property id="AnalogBottomLeft" type="number">1</property>
+    <property id="AnalogBottomCenter" type="number">8</property>
+    <property id="AnalogBottomRight" type="number">4</property>
+    <property id="DigitalTop" type="number">8</property>
+    <property id="DigitalBottomLeft" type="number">2</property>
+    <property id="DigitalBottomCenter" type="number">3</property>
+    <property id="DigitalBottomRight" type="number">4</property>
+</properties>

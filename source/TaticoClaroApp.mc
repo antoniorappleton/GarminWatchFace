@@ -12,4 +12,8 @@ class TaticoClaroApp extends Application.AppBase {
     function getInitialView() {
         return [new TaticoClaroView()];
     }
+
+    function onSettingsChanged() as Void {
+        WatchUi.requestUpdate();
+    }
 }

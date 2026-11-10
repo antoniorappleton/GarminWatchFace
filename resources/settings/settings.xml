@@ -1,0 +1,131 @@
+<settings>
+    <setting propertyKey="@Properties.DisplayMode" title="@Strings.DisplayModeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ModeAnalog</listEntry>
+            <listEntry value="1">@Strings.ModeDigital</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.Theme" title="@Strings.ThemeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ThemeLight</listEntry>
+            <listEntry value="1">@Strings.ThemeDark</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AnalogLeftDial" title="@Strings.AnalogLeftDialTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AnalogRightDial" title="@Strings.AnalogRightDialTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AnalogBottomLeft" title="@Strings.AnalogBottomLeftTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AnalogBottomCenter" title="@Strings.AnalogBottomCenterTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.AnalogBottomRight" title="@Strings.AnalogBottomRightTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.DigitalTop" title="@Strings.DigitalTopTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.DigitalBottomLeft" title="@Strings.DigitalBottomLeftTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.DigitalBottomCenter" title="@Strings.DigitalBottomCenterTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.DigitalBottomRight" title="@Strings.DigitalBottomRightTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.MetricDate</listEntry>
+            <listEntry value="1">@Strings.MetricBattery</listEntry>
+            <listEntry value="2">@Strings.MetricHeartRate</listEntry>
+            <listEntry value="3">@Strings.MetricBodyBattery</listEntry>
+            <listEntry value="4">@Strings.MetricAltitude</listEntry>
+            <listEntry value="5">@Strings.MetricSteps</listEntry>
+            <listEntry value="6">@Strings.MetricTemperature</listEntry>
+            <listEntry value="7">@Strings.MetricPrecipitation</listEntry>
+            <listEntry value="8">@Strings.MetricSolar</listEntry>
+        </settingConfig>
+    </setting>
+</settings>
