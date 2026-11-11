@@ -349,7 +349,13 @@ class TaticoNavyView extends WatchUi.WatchFace {
             text(dc, left + 15, _sy + 36, _f9, moon);
             return;
         }
-        centered(dc, cx, _sy + 11, _f17, fieldText(_bubbleA));
+        // A linha 1 passa à fonte de 13 px quando o valor não cabe no círculo.
+        var top = fieldText(_bubbleA);
+        if (dc.getTextWidthInPixels(top, _f17) > 48) {
+            centered(dc, cx, _sy + 14, _f13, top);
+        } else {
+            centered(dc, cx, _sy + 11, _f17, top);
+        }
         centered(dc, cx, _sy + 34, _f13, fieldText(_bubbleB));
     }
 
@@ -509,9 +515,18 @@ class TaticoNavyView extends WatchUi.WatchFace {
             return _info.altitude;
         }
         if ((Toybox has :SensorHistory) && (SensorHistory has :getElevationHistory)) {
-            var sample = SensorHistory.getElevationHistory({:period => 1}).next();
-            if (sample != null) {
-                return sample.data;
+            return latest(SensorHistory.getElevationHistory({:period => 10}));
+        }
+        return null;
+    }
+
+    // Registo válido mais recente do histórico: o último pode vir vazio.
+    private function latest(history) {
+        if (history != null) {
+            for (var sample = history.next(); sample != null; sample = history.next()) {
+                if (sample.data != null) {
+                    return sample.data;
+                }
             }
         }
         return null;
@@ -527,10 +542,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
             return i.ambientPressure;
         }
         if ((Toybox has :SensorHistory) && (SensorHistory has :getPressureHistory)) {
-            var sample = SensorHistory.getPressureHistory({:period => 1}).next();
-            if (sample != null) {
-                return sample.data;
-            }
+            return latest(SensorHistory.getPressureHistory({:period => 10}));
         }
         return null;
     }

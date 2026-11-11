@@ -219,7 +219,8 @@ if __name__ == "__main__":
     ring5 = art(".###.", "#...#", "#...#", "#...#", ".###.")
     write_font(*text_font("f9", 9, TEXT))
     write_font(*text_font("f13", 13, TEXT, degree=(ring5[1:, 1:] | ring5[:-1, :-1], 1, 3, 6)))
-    write_font(*text_font("f17", 17, DIGITS + "-", degree=(ring5, 2, 3, 8)))
+    # f17 também serve a linha 1 da janela: precisa das unidades e dos rumos.
+    write_font(*text_font("f17", 17, DIGITS + "-%/KTNESWkmhft", degree=(ring5, 2, 3, 8)))
     write_font(*text_font("f28", 28, DIGITS + UPPER))
     name, lh, base, glyphs = text_font("f46", 46, DIGITS)
     write_font(name, lh, base, checker(glyphs))
