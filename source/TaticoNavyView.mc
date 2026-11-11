@@ -52,6 +52,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _f17 = null;
     private var _icons = null;
     private var _ring = null;   // só nos estilos analógicos
+    private var _f17c = null;   // só no Navy: dia do DTG em xadrez
     private var _f28 = null;    // só no Zulu
     private var _f46 = null;
 
@@ -132,6 +133,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
         _fieldB = setting(_style == 2 ? "SurfLine2" : "ZuluField2", 9);
 
         _ring = null;
+        _f17c = null;
         _f28 = null;
         _f46 = null;
         if (_f9 == null) {
@@ -142,6 +144,9 @@ class TaticoNavyView extends WatchUi.WatchFace {
             _f46 = WatchUi.loadResource(Rez.Fonts.F46);
         } else {
             _ring = WatchUi.loadResource(Rez.Fonts.Ring);
+            if (_style == 0) {
+                _f17c = WatchUi.loadResource(Rez.Fonts.F17c);
+            }
         }
     }
 
@@ -231,9 +236,27 @@ class TaticoNavyView extends WatchUi.WatchFace {
         if (_showDTG) {
             var day = value(14);
             var time = value(15);
-            var left = (151 - dc.getTextWidthInPixels(time, _f13)) / 2;
-            outlined(dc, left, 97, _f17, day);
-            outlined(dc, left + 26, 100, _f13, time);
+            if (_style == 0) {
+                // Navy: hora do tamanho do dia; o dia distingue-se pelo xadrez, como no Zulu.
+                var left = (151 - dc.getTextWidthInPixels(time, _f17)) / 2;
+                dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 9; i++) {
+                    text(dc, left + i % 3 - 1, 96 + i / 3, _f17, day);
+                }
+                dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 2; i++) {
+                    var digit = day.substring(i, i + 1);
+                    if ((left + 11 * i + 97) % 2 == 1) {
+                        digit = ((digit.toNumber() + 97).toChar()).toString();
+                    }
+                    text(dc, left + 11 * i, 97, _f17c, digit);
+                }
+                outlined(dc, left + 26, 97, _f17, time);
+            } else {
+                var left = (151 - dc.getTextWidthInPixels(time, _f13)) / 2;
+                outlined(dc, left, 97, _f17, day);
+                outlined(dc, left + 26, 100, _f13, time);
+            }
         }
         var line = dataLine();
         if (line.length() > 0) {
