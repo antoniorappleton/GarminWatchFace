@@ -273,7 +273,12 @@ class TaticoNavyView extends WatchUi.WatchFace {
             text(dc, 40, y + 3, _icons, id == 5 ? "^" : "v");
             text(dc, 50, y, _f9, value(id));
         } else {
-            text(dc, 40, y, _f9, fieldLabel(id) + " " + fieldText(id));
+            var line = fieldLabel(id) + " " + fieldText(id);
+            text(dc, 40, y, _f9, line);
+            var arrow = id == 4 ? fieldIcon(id) : null;
+            if (arrow != null) {
+                text(dc, 42 + dc.getTextWidthInPixels(line, _f9), y + 1, _icons, arrow);
+            }
         }
     }
 
@@ -347,7 +352,16 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     private function drawZuluField(dc as Dc, cx, id) as Void {
         if (id != 9) {
-            centered(dc, cx, 30, _f9, fieldLabel(id));
+            // A seta do vento vai junto à sigla, para o valor não ficar mais largo.
+            var label = fieldLabel(id);
+            var arrow = id == 4 ? fieldIcon(id) : null;
+            if (arrow != null) {
+                var left = (2 * cx + 1 - dc.getTextWidthInPixels(label, _f9) - 12) / 2;
+                text(dc, left, 30, _f9, label);
+                text(dc, left + dc.getTextWidthInPixels(label, _f9) + 2, 31, _icons, arrow);
+            } else {
+                centered(dc, cx, 30, _f9, label);
+            }
             centered(dc, cx, 40, _f13, fieldText(id));
         }
     }
@@ -361,25 +375,56 @@ class TaticoNavyView extends WatchUi.WatchFace {
         dc.fillCircle(cx, _sy + 31, 31);
         dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
 
-        if (_style == 2) {
-            var wind = fieldText(_bubbleA);
-            var left = (2 * cx - 11 - dc.getTextWidthInPixels(wind, _f13)) / 2;
-            text(dc, left, _sy + 17, _icons, value(11));
-            text(dc, left + 12, _sy + 14, _f13, wind);
-            var moon = fieldText(_bubbleB);
-            left = (2 * cx - 14 - dc.getTextWidthInPixels(moon, _f9)) / 2;
-            text(dc, left, _sy + 37, _icons, value(12));
-            text(dc, left + 15, _sy + 36, _f9, moon);
-            return;
-        }
-        // A linha 1 passa à fonte de 13 px quando o valor não cabe no círculo.
+        // Linha 1: fonte de 17 px (13 px no Surf), descendo de tamanho se não couber no círculo.
         var top = fieldText(_bubbleA);
-        if (dc.getTextWidthInPixels(top, _f17) > 48) {
-            centered(dc, cx, _sy + 14, _f13, top);
+        var icon = fieldIcon(_bubbleA);
+        if (_style != 2 && iconTextWidth(dc, _f17, top, icon) <= 48) {
+            iconText(dc, cx, _sy + 11, _f17, top, icon);
+        } else if (iconTextWidth(dc, _f13, top, icon) <= 52) {
+            iconText(dc, cx, _sy + 14, _f13, top, icon);
         } else {
-            centered(dc, cx, _sy + 11, _f17, top);
+            iconText(dc, cx, _sy + 16, _f9, top, icon);
         }
-        centered(dc, cx, _sy + 34, _f13, fieldText(_bubbleB));
+        // Linha 2: 13 px (9 px no Surf).
+        var bottom = fieldText(_bubbleB);
+        icon = fieldIcon(_bubbleB);
+        if (_style != 2 && iconTextWidth(dc, _f13, bottom, icon) <= 54) {
+            iconText(dc, cx, _sy + 34, _f13, bottom, icon);
+        } else {
+            iconText(dc, cx, _sy + 36, _f9, bottom, icon);
+        }
+    }
+
+    // Ícone que acompanha um campo: seta do vento em todos os estilos, fase da lua no Surf.
+    private function fieldIcon(id) {
+        if (id == 4) {
+            var arrow = value(11);
+            return arrow.length() > 0 ? arrow : null;
+        }
+        if (id == 7 && _style == 2) {
+            return value(12);
+        }
+        return null;
+    }
+
+    private function iconTextWidth(dc as Dc, font, str, icon) as Number {
+        var w = dc.getTextWidthInPixels(str, font);
+        return icon == null ? w : w + (icon.toCharArray()[0] >= 'M' ? 15 : 12);
+    }
+
+    // Ícone + texto centrados em cx; o ícone fica alinhado ao meio dos algarismos.
+    private function iconText(dc as Dc, cx, y, font, str, icon) as Void {
+        var left = (2 * cx + 1 - iconTextWidth(dc, font, str, icon)) / 2;
+        if (icon != null) {
+            text(dc, left, y + iconOffset(font), _icons, icon);
+            left += icon.toCharArray()[0] >= 'M' ? 15 : 12;
+        }
+        text(dc, left, y, font, str);
+    }
+
+    // Desvio vertical do ícone (10–11 px de altura) em relação ao topo da linha de texto.
+    private function iconOffset(font) as Number {
+        return font == _f9 ? 1 : (font == _f13 ? 3 : 5);
     }
 
     // ---------- Texto ----------

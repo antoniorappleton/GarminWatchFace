@@ -217,7 +217,9 @@ def write_font(name, line_height, base, glyphs):
 if __name__ == "__main__":
     # Símbolo de grau desenhado à mão (anel de 5 px), como na folha de design.
     ring5 = art(".###.", "#...#", "#...#", "#...#", ".###.")
-    write_font(*text_font("f9", 9, TEXT))
+    # f9 serve as linhas do Surf e a linha 2 da janela do Surf: também leva o grau.
+    ring4 = art(".##.", "#..#", "#..#", ".##.")
+    write_font(*text_font("f9", 9, TEXT, degree=(ring4, 0, 2, 5)))
     write_font(*text_font("f13", 13, TEXT, degree=(ring5[1:, 1:] | ring5[:-1, :-1], 1, 3, 6)))
     # f17 também serve a linha 1 da janela: precisa das unidades e dos rumos.
     write_font(*text_font("f17", 17, DIGITS + "-%/KTNESWZkmhft", degree=(ring5, 2, 3, 8)))
