@@ -48,7 +48,8 @@ class TaticoNavyApp extends Application.AppBase {
 
 // Definições com lista de opções: [chave, título, nomes das opções].
 function settingDefs() {
-    var themes = [Rez.Strings.ThemeAuto, Rez.Strings.ThemeLight, Rez.Strings.ThemeDark];
+    var themes = [Rez.Strings.ThemeAuto, Rez.Strings.ThemeLight, Rez.Strings.ThemeDark,
+        Rez.Strings.ThemeAutoInverted];
     var coordinateFormats = [Rez.Strings.CoordDegreesMinutes, Rez.Strings.CoordDecimalMinutes];
     var bubbleFields = [Rez.Strings.FieldTemp, Rez.Strings.FieldRain, Rez.Strings.FieldWind,
         Rez.Strings.FieldMoon, Rez.Strings.FieldBattery, Rez.Strings.FieldAlt,

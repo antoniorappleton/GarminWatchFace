@@ -1,5 +1,3 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
-    <bitmap id="TopoLight" filename="topo_light.png"/>
-    <bitmap id="TopoDark" filename="topo_dark.png"/>
 </drawables>

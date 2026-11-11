@@ -180,47 +180,6 @@ def ring_font():
     return "ring", 88, 88, g
 
 
-# ---------- Fundo topográfico monocromático ----------
-
-def topography():
-    yy, xx = np.mgrid[0:176, 0:176]
-    keep_out = np.zeros((176, 176), bool)
-    for x0, y0, x1, y1 in (
-        (107, 0, 176, 75), (60, 32, 112, 47), (10, 90, 166, 134),
-        (0, 0, 176, 4), (0, 172, 176, 176),
-    ):
-        keep_out[y0:y1, x0:x1] = True
-    for cx, y, width, height in (
-        (150, 78, 20, 18), (148, 116, 22, 18), (122, 142, 18, 18),
-        (88, 140, 18, 18), (53, 142, 18, 18), (28, 117, 18, 18),
-        (26, 78, 18, 18), (28, 47, 18, 18), (53, 22, 18, 18), (88, 16, 18, 18),
-    ):
-        x0 = max(0, cx - width // 2)
-        y0 = max(0, y)
-        keep_out[y0:min(176, y0 + height), x0:min(176, x0 + width)] = True
-
-    for dark in (False, True):
-        mask = Image.new("L", (176, 176), 0)
-        draw = ImageDraw.Draw(mask)
-        for cx, cy, rx, ry in ((38, 51, 15, 9), (38, 51, 27, 16), (38, 51, 40, 24),
-                               (145, 127, 13, 8), (145, 127, 24, 15), (145, 127, 36, 22)):
-            draw.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), outline=255, width=1)
-        for base, phase in ((20, 0), (31, 14), (145, 24), (157, 8)):
-            points = []
-            for x in range(-8, 185):
-                y = base + 5 * math.sin((x + phase) / 22) + 2 * math.sin((x + phase) / 8)
-                points.append((x, y))
-            draw.line(points, fill=255, width=1)
-
-        lines = np.asarray(mask) > 0
-        stipple = lines & (((xx + 2 * yy) % 4) == 0) & ~keep_out
-        pixels = np.full((176, 176), 0 if dark else 255, np.uint8)
-        pixels[stipple] = 255 if dark else 0
-        Image.fromarray(pixels).convert("1").save(
-            os.path.join(ROOT, "resources", "drawables",
-                         "topo_dark.png" if dark else "topo_light.png"))
-
-
 # ---------- Escrita (formato BMFont de texto) ----------
 
 def write_font(name, line_height, base, glyphs):
@@ -266,4 +225,3 @@ if __name__ == "__main__":
     write_font(name, lh, base, checker(glyphs))
     write_font(*icon_font())
     write_font(*ring_font())
-    topography()

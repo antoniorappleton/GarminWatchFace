@@ -1,14 +1,15 @@
 # Tático Navy
 
 Mostrador monocromático de 176 × 176 px para o Garmin Instinct 3 Solar 45 mm.
-O ecrã é 1-bit; fontes, marcas, ícones e fundos são recursos pixelizados gerados
+O ecrã é 1-bit; fontes, marcas e ícones são recursos pixelizados gerados
 por `tools/gen_assets.py`.
 
 ## Estilos
 
-- **Navy** — analógico, tema claro, escuro ou automático (claro das 06:00 às
-  17:59, hora local; escuro no restante período), ponteiros espada e escala
-  horária 12/24.
+- **Navy** — analógico, tema claro, escuro ou automático, ponteiros espada,
+  triângulo nas 12h, horas 12/24 nas 3, 6 e 9 e azimute em graus nas restantes
+  posições. O tema automático troca às 06:00 e às 18:00 (hora
+  local) e pode ser claro de dia e escuro de noite, ou o inverso.
 - **Surf** — analógico sempre escuro, com ondas, nascer/pôr do sol, vento e
   fase da lua.
 - **Zulu** — digital, tema claro, escuro ou automático, com campos de altitude
@@ -28,7 +29,7 @@ Os mostradores analógicos não têm ponteiro dos segundos.
 
 ## Recursos gráficos
 
-Para regenerar fontes e fundos topográficos:
+Para regenerar as fontes:
 
 ```powershell
 python tools\gen_assets.py

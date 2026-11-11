@@ -29,7 +29,7 @@ import Toybox.Weather;
 class TaticoNavyView extends WatchUi.WatchFace {
 
     private var _style = 0;
-    private var _theme = 0;
+    private var _theme = 0;     // 0 auto (claro de dia), 1 claro, 2 escuro, 3 auto (escuro de dia)
     private var _dark = false;
     private var _fg = Graphics.COLOR_BLACK;
     private var _bg = Graphics.COLOR_WHITE;
@@ -54,8 +54,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _ring = null;   // só nos estilos analógicos
     private var _f28 = null;    // só no Zulu
     private var _f46 = null;
-    private var _topoLight = null;
-    private var _topoDark = null;
 
     private var _sx = 113;      // canto da caixa da subjanela (62 x 62 px)
     private var _sy = 7;
@@ -85,8 +83,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
         _f13 = WatchUi.loadResource(Rez.Fonts.F13);
         _f17 = WatchUi.loadResource(Rez.Fonts.F17);
         _icons = WatchUi.loadResource(Rez.Fonts.Icons);
-        _topoLight = WatchUi.loadResource(Rez.Drawables.TopoLight);
-        _topoDark = WatchUi.loadResource(Rez.Drawables.TopoDark);
         if (WatchUi has :getSubscreen) {
             var sub = WatchUi.getSubscreen();
             if (sub != null) {
@@ -97,16 +93,11 @@ class TaticoNavyView extends WatchUi.WatchFace {
         loadSettings();
     }
 
-    private function autoDark() as Boolean {
-        var local = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        return local.hour < 6 || local.hour >= 18;
-    }
-
+    // Nos temas automáticos o dia vai das 06:00 às 17:59, hora local.
     private function applyTheme() as Void {
-        _dark = _style == 2 || _theme == 2 || (_theme == 0 && autoDark());
-        if (_style != 2 && _theme == 1) {
-            _dark = false;
-        }
+        var hour = System.getClockTime().hour;
+        var night = hour < 6 || hour >= 18;
+        _dark = _style == 2 || _theme == 2 || (_theme == 0 && night) || (_theme == 3 && !night);
         _fg = _dark ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
         _bg = _dark ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE;
     }
@@ -118,7 +109,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
         if (demo != null) {
             _style = demo;
         }
-        _theme = setting("Theme", 2);
+        _theme = setting("Theme", 3);
         demo = demoValue(-2, 0, false);
         if (demo != null) {
             _theme = demo ? 2 : 1;
@@ -156,16 +147,13 @@ class TaticoNavyView extends WatchUi.WatchFace {
 
     // Desenha sempre o ecrã inteiro (evita artefactos na subjanela).
     function onUpdate(dc as Dc) as Void {
-        if (_style != 2 && _theme == 0) {
+        if (_style != 2 && (_theme == 0 || _theme == 3)) {
             applyTheme();
         }
         _cond = Weather.getCurrentConditions();
         _info = Activity.getActivityInfo();
         dc.setColor(_bg, _bg);
         dc.clear();
-        if (_style == 0 && demoValue(-1, 0, false) == null) {
-            dc.drawBitmap(0, 0, _dark ? _topoDark : _topoLight);
-        }
         if (_style == 1) {
             drawZulu(dc);
         } else {
@@ -209,9 +197,28 @@ class TaticoNavyView extends WatchUi.WatchFace {
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
         for (var i = 3; i <= 12; i++) {
             var k = (i - 3) * 3;
-            var label = (hour >= 12 && i != 12) ? i + 12 : i;
-            centered(dc, _numerals[k], _numerals[k + 1],
-                _numerals[k + 2] == 1 ? _f17 : _f9, label.toString());
+            var cardinal = _numerals[k + 2] == 1;
+            var cx = _numerals[k];
+            var label = ((hour >= 12 && i != 12) ? i + 12 : i).toString();
+            if (_style == 0) {
+                if (i == 12) {
+                    // Triângulo das 12h, linha a linha (13 px de base).
+                    for (var r = 0; r < 13; r++) {
+                        dc.fillRectangle(88 - r / 2, 18 + r, 2 * (r / 2) + 1, 1);
+                    }
+                    continue;
+                }
+                if (!cardinal) {
+                    // Azimute em graus; nos lados, 3 px para dentro para não tocar nas marcas.
+                    label = (i * 30).format("%03d");
+                    if (i == 4) {
+                        cx -= 3;
+                    } else if (i == 8 || i == 10) {
+                        cx += 3;
+                    }
+                }
+            }
+            centered(dc, cx, _numerals[k + 1], cardinal ? _f17 : _f9, label);
         }
         if (_showSignature) {
             text(dc, 67, 36, _f9, "appleton");

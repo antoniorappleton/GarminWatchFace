@@ -11,6 +11,7 @@
             <listEntry value="0">@Strings.ThemeAuto</listEntry>
             <listEntry value="1">@Strings.ThemeLight</listEntry>
             <listEntry value="2">@Strings.ThemeDark</listEntry>
+            <listEntry value="3">@Strings.ThemeAutoInverted</listEntry>
         </settingConfig>
     </setting>
     <setting propertyKey="@Properties.ShowDTG" title="@Strings.ShowDTGTitle">

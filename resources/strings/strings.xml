@@ -5,7 +5,8 @@
     <string id="StyleZulu">Zulu digital</string>
     <string id="StyleSurf">Surf</string>
     <string id="ThemeTitle">Tema (Navy/Zulu)</string>
-    <string id="ThemeAuto">Automático (06-18)</string>
+    <string id="ThemeAuto">Auto: claro de dia</string>
+    <string id="ThemeAutoInverted">Auto: escuro de dia</string>
     <string id="ThemeLight">Claro</string>
     <string id="ThemeDark">Escuro</string>
     <string id="ShowDTGTitle">Mostrar DTG UTC</string>
