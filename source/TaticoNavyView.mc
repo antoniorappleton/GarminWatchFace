@@ -16,7 +16,7 @@ import Toybox.Weather;
 // Três estilos, escolhidos nas definições:
 //   0 Navy  analógico, claro ou escuro
 //   1 Zulu  digital, claro ou escuro
-//   2 Surf  analógico, sempre escuro, com onda e duas linhas de dados
+//   2 Surf  analógico, claro ou escuro, com onda e duas linhas de dados
 //
 // As posições são as da folha de design (tatico-navy-folha.png), píxel a píxel.
 // Todo o texto, ícones e marcas vêm de fontes de píxeis geradas por
@@ -52,7 +52,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _f17 = null;
     private var _icons = null;
     private var _ring = null;   // só nos estilos analógicos
-    private var _f17c = null;   // só no Navy: dia do DTG em xadrez
+    private var _f17c = null;   // só nos analógicos: dia do DTG em xadrez
     private var _f28 = null;    // só no Zulu
     private var _f46 = null;
 
@@ -98,7 +98,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private function applyTheme() as Void {
         var hour = System.getClockTime().hour;
         var night = hour < 6 || hour >= 18;
-        _dark = _style == 2 || _theme == 2 || (_theme == 0 && night) || (_theme == 3 && !night);
+        _dark = _theme == 2 || (_theme == 0 && night) || (_theme == 3 && !night);
         _fg = _dark ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK;
         _bg = _dark ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE;
     }
@@ -144,15 +144,13 @@ class TaticoNavyView extends WatchUi.WatchFace {
             _f46 = WatchUi.loadResource(Rez.Fonts.F46);
         } else {
             _ring = WatchUi.loadResource(Rez.Fonts.Ring);
-            if (_style == 0) {
-                _f17c = WatchUi.loadResource(Rez.Fonts.F17c);
-            }
+            _f17c = WatchUi.loadResource(Rez.Fonts.F17c);
         }
     }
 
     // Desenha sempre o ecrã inteiro (evita artefactos na subjanela).
     function onUpdate(dc as Dc) as Void {
-        if (_style != 2 && (_theme == 0 || _theme == 3)) {
+        if (_theme == 0 || _theme == 3) {
             applyTheme();
         }
         _cond = Weather.getCurrentConditions();
@@ -229,37 +227,32 @@ class TaticoNavyView extends WatchUi.WatchFace {
             text(dc, 67, 36, _f9, "appleton");
         }
         if (_style == 2) {
-            text(dc, 64, 52, _icons, "~");
+            text(dc, 73, 122, _icons, "~");  // onda por cima do 18
             drawSurfLine(dc, 57, _fieldA);
             drawSurfLine(dc, 68, _fieldB);
         }
         if (_showDTG) {
             var day = value(14);
             var time = value(15);
-            if (_style == 0) {
-                // Navy: hora do tamanho do dia; o dia distingue-se pelo xadrez, como no Zulu.
-                var left = (151 - dc.getTextWidthInPixels(time, _f17)) / 2;
-                dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
-                for (var i = 0; i < 9; i++) {
-                    text(dc, left + i % 3 - 1, 96 + i / 3, _f17, day);
-                }
-                dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-                for (var i = 0; i < 2; i++) {
-                    var digit = day.substring(i, i + 1);
-                    if ((left + 11 * i + 97) % 2 == 1) {
-                        digit = ((digit.toNumber() + 97).toChar()).toString();
-                    }
-                    text(dc, left + 11 * i, 97, _f17c, digit);
-                }
-                outlined(dc, left + 26, 97, _f17, time);
-            } else {
-                var left = (151 - dc.getTextWidthInPixels(time, _f13)) / 2;
-                outlined(dc, left, 97, _f17, day);
-                outlined(dc, left + 26, 100, _f13, time);
+            // Hora do tamanho do dia; o dia distingue-se pelo xadrez, como no Zulu.
+            var left = (151 - dc.getTextWidthInPixels(time, _f17)) / 2;
+            dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+            for (var i = 0; i < 9; i++) {
+                text(dc, left + i % 3 - 1, 96 + i / 3, _f17, day);
             }
+            dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+            for (var i = 0; i < 2; i++) {
+                var digit = day.substring(i, i + 1);
+                if ((left + 11 * i + 97) % 2 == 1) {
+                    digit = ((digit.toNumber() + 97).toChar()).toString();
+                }
+                text(dc, left + 11 * i, 97, _f17c, digit);
+            }
+            outlined(dc, left + 26, 97, _f17, time);
         }
+        // No Surf a onda ocupa o lugar das coordenadas.
         var line = dataLine();
-        if (line.length() > 0) {
+        if (_style == 0 && line.length() > 0) {
             outlined(dc, (177 - dc.getTextWidthInPixels(line, _f9)) / 2, 118, _f9, line);
         }
     }
@@ -345,8 +338,8 @@ class TaticoNavyView extends WatchUi.WatchFace {
             centered(dc, 88, 121, _f13, value(10));
         }
         if (_showSignature) {
-            text(dc, 58, 143, _icons, "r");
-            text(dc, 67, 152, _f9, "appleton");
+            text(dc, 60, 139, _icons, "m");
+            text(dc, 67, 158, _f9, "appleton");
         }
     }
 

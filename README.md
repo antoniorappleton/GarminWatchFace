@@ -10,10 +10,10 @@ por `tools/gen_assets.py`.
   triângulo nas 12h, horas 12/24 nas 3, 6 e 9 e azimute em graus nas restantes
   posições. O tema automático troca às 06:00 e às 18:00 (hora
   local) e pode ser claro de dia e escuro de noite, ou o inverso.
-- **Surf** — analógico sempre escuro, com ondas, nascer/pôr do sol, vento e
-  fase da lua.
+- **Surf** — analógico, tema claro, escuro ou automático, com onda por cima
+  das 18h, DTG com o dia em xadrez, nascer/pôr do sol, vento e fase da lua.
 - **Zulu** — digital, tema claro, escuro ou automático, com campos de altitude
-  e pressão, DTG em UTC e janela de azimute.
+  e pressão, DTG em UTC, janela de azimute e serra por cima da assinatura.
 
 Todos os estilos permitem escolher os dados da janela superior. Também é
 possível ocultar o DTG, as coordenadas e a assinatura. O formato das
