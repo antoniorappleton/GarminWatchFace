@@ -53,7 +53,7 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _icons = null;
     private var _ring = null;   // só nos estilos analógicos
     private var _f17c = null;   // só nos analógicos: dia do DTG em xadrez
-    private var _f28 = null;    // só no Zulu
+    private var _f28 = null;    // HHMMZ: 28 px no Zulu, 19 px no Navy
     private var _f46 = null;
 
     private var _sx = 113;      // canto da caixa da subjanela (62 x 62 px)
@@ -71,12 +71,9 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _pommel = [[-10.75, 0], [-8, 3], [-5.25, 0], [-8, -3]];
 
     // Ponteiros periféricos do Navy: deslizam ao longo do anel das marcas, sem
-    // tocar no centro, deixando a vela desobstruída. Mesmo formato [distância, desvio].
-    private var _hourTri = [[68, 4.5], [76, 0], [68, -4.5]];
-    private var _minTri = [[77, 7], [86, 0], [77, -7]];
-
-    const SAIL_H = 46;   // altura da vela em píxeis
-    const CROSS_R = 8;   // raio da cruz
+    // tocar no centro. Mesmo formato [distância, desvio].
+    private var _hourTri = [[59, 7], [72, 0], [59, -7]];
+    private var _minTri = [[73, 11], [87, 0], [73, -11]];
 
     // Numerais das 3 às 12: centro x, topo y, cardeal (1 = fonte de 17 px).
     // Os das posições 1 e 2 ficam sempre por baixo da subjanela.
@@ -150,9 +147,14 @@ class TaticoNavyView extends WatchUi.WatchFace {
         if (_style == 1) {
             _f28 = WatchUi.loadResource(Rez.Fonts.F28);
             _f46 = WatchUi.loadResource(Rez.Fonts.F46);
+            return;
+        }
+        _ring = WatchUi.loadResource(Rez.Fonts.Ring);
+        if (_style == 0) {
+            _f28 = WatchUi.loadResource(Rez.Fonts.F19);    // DTG do Navy, entre o 9 e o 3
+            _f17c = WatchUi.loadResource(Rez.Fonts.F19c);  // dia do DTG em xadrez, em 19 px
         } else {
-            _ring = WatchUi.loadResource(Rez.Fonts.Ring);
-            _f17c = WatchUi.loadResource(Rez.Fonts.F17c);
+            _f17c = WatchUi.loadResource(Rez.Fonts.F17c);  // Surf mantém o dia em xadrez
         }
     }
 
@@ -199,8 +201,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
             // Sem ponteiros nem eixo ao centro: só os dois triângulos no anel.
             drawPeripheralHand(dc, (hour % 12 + min / 60.0) * 30, _hourTri);
             drawPeripheralHand(dc, min * 6, _minTri);
-            // Vela com a Cruz de Cristo, entre a assinatura e o DTG, agora desobstruída.
-            drawSailWithCross(dc, 88, 74, _fg);
         } else {
             drawSword(dc, (hour % 12 + min / 60.0) * 30, _hourBlade, _hourLume);
             drawSword(dc, min * 6, _minBlade, _minLume);
@@ -252,26 +252,48 @@ class TaticoNavyView extends WatchUi.WatchFace {
         if (_showDTG) {
             var day = value(14);
             var time = value(15);
-            // Hora do tamanho do dia; o dia distingue-se pelo xadrez, como no Zulu.
-            var left = (151 - dc.getTextWidthInPixels(time, _f17)) / 2;
-            dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
-            for (var i = 0; i < 9; i++) {
-                text(dc, left + i % 3 - 1, 96 + i / 3, _f17, day);
-            }
-            dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
-            for (var i = 0; i < 2; i++) {
-                var digit = day.substring(i, i + 1);
-                if ((left + 11 * i + 97) % 2 == 1) {
-                    digit = ((digit.toNumber() + 97).toChar()).toString();
+            if (_style == 0) {
+                // DTG (19 px) na linha do 9 e do 3, com a mesma linha de base; o dia em xadrez, como no Zulu.
+                var y = 76;
+                var dayW = dc.getTextWidthInPixels(day, _f28);
+                var gap = 6;
+                var navyLeft = (177 - dayW - gap - dc.getTextWidthInPixels(time, _f28)) / 2;
+                dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 9; i++) {
+                    text(dc, navyLeft + i % 3 - 1, y + i / 3 - 1, _f28, day);
                 }
-                text(dc, left + 11 * i, 97, _f17c, digit);
+                dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 2; i++) {
+                    var x = navyLeft + 12 * i;
+                    var digit = day.substring(i, i + 1);
+                    if ((x + y) % 2 == 1) {
+                        digit = ((digit.toNumber() + 97).toChar()).toString();
+                    }
+                    text(dc, x, y, _f17c, digit);
+                }
+                outlined(dc, navyLeft + dayW + gap, y, _f28, time);
+            } else {
+                // Hora do tamanho do dia; o dia distingue-se pelo xadrez, como no Zulu.
+                var left = (151 - dc.getTextWidthInPixels(time, _f17)) / 2;
+                dc.setColor(_bg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 9; i++) {
+                    text(dc, left + i % 3 - 1, 96 + i / 3, _f17, day);
+                }
+                dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+                for (var i = 0; i < 2; i++) {
+                    var digit = day.substring(i, i + 1);
+                    if ((left + 11 * i + 97) % 2 == 1) {
+                        digit = ((digit.toNumber() + 97).toChar()).toString();
+                    }
+                    text(dc, left + 11 * i, 97, _f17c, digit);
+                }
+                outlined(dc, left + 26, 97, _f17, time);
             }
-            outlined(dc, left + 26, 97, _f17, time);
         }
         // No Surf a onda ocupa o lugar das coordenadas.
         var line = dataLine();
         if (_style == 0 && line.length() > 0) {
-            outlined(dc, (177 - dc.getTextWidthInPixels(line, _f9)) / 2, 118, _f9, line);
+            outlined(dc, (177 - dc.getTextWidthInPixels(line, _f9)) / 2, 98, _f9, line);  // logo por baixo do DTG
         }
     }
 
@@ -311,37 +333,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
         dc.fillPolygon(handPoints(angle, shape, 1));
         dc.setColor(_fg, _bg);
         dc.fillPolygon(handPoints(angle, shape, 0));
-    }
-
-    // Desenha a vela só com o contorno lateral (sem base, sem preenchimento)
-    // e a Cruz de Cristo cheia ao centro. (cx, cy): centro da caixa da vela
-    // (36 x 46 px), de cy-23 a cy+23.
-    private function drawSailWithCross(dc as Dc, cx as Number, cy as Number, fgColor as Number) as Void {
-        var top = cy - 23;
-        var crossX = cx;
-        var crossY = cy + 8;
-
-        dc.setColor(fgColor, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(1);
-
-        for (var row = 0; row <= SAIL_H; row++) {
-            var t = row.toFloat() / SAIL_H;
-            var u = 1.0 - t;
-            var y = top + row;
-            // Bordo esquerdo côncavo (t²) e bordo direito convexo (1 - u^1,5): só as duas linhas laterais.
-            var xl = Math.round(cx - 6 - 12 * t * t).toNumber();
-            var xr = Math.round(cx - 6 + 24 * (1.0 - u * Math.sqrt(u))).toNumber();
-            dc.drawPoint(xl, y);
-            dc.drawPoint(xr, y);
-        }
-
-        for (var dy = -CROSS_R; dy <= CROSS_R; dy++) {
-            for (var dx = -CROSS_R; dx <= CROSS_R; dx++) {
-                if (inCross(dx, dy, 0)) {
-                    dc.drawPoint(crossX + dx, crossY + dy);
-                }
-            }
-        }
     }
 
     // Onda do Surf: traço único (sem preenchimento) que sobe, enrola numa
@@ -390,29 +381,6 @@ class TaticoNavyView extends WatchUi.WatchFace {
         var a = Math.toRadians(a0 + (a1 - a0) * t);
         var r = r0 + (r1 - r0) * t;
         return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-    }
-
-    // O ponto (dx, dy), relativo ao centro da cruz, pertence à cruz?
-    // grow = 1 alarga a cruz 1 px em todas as direções (para a margem).
-    // Cruz de braços de 3 px que alargam para 7 px nas pontas.
-    private function inCross(dx as Number, dy as Number, grow as Number) as Boolean {
-        var a = (dx < 0 ? -dx : dx) - grow;
-        var b = (dy < 0 ? -dy : dy) - grow;
-        if (a < 0) { a = 0; }
-        if (b < 0) { b = 0; }
-        if (a > CROSS_R || b > CROSS_R) {
-            return false;
-        }
-        if ((a <= 1 && b <= 5) || (b <= 1 && a <= 5)) {
-            return true;                          // corpo dos braços
-        }
-        if (b > 5) {
-            return a <= (b - 4 < 3 ? b - 4 : 3);  // pontas de cima e de baixo
-        }
-        if (a > 5) {
-            return b <= (a - 4 < 3 ? a - 4 : 3);  // pontas dos lados
-        }
-        return false;
     }
 
     // Converte uma forma [distância, desvio] em pontos no ecrã (0° = 12 horas).

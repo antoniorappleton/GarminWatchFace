@@ -3,7 +3,8 @@
 Tudo o que o mostrador desenha, exceto os ponteiros, vem de fontes de píxeis:
   f9, f13, f17   texto (DejaVu Sans Condensed Bold, limiar fixo, sem cinzentos)
   f28            HHMM + fuso do Zulu
-  f17c, f46      dia do DTG (Navy e Zulu), já em xadrez ("cinzento"), nas duas paridades
+  f19            HHMMZ do Navy
+  f17c, f19c, f46  dia do DTG (Surf, Navy e Zulu), já em xadrez ("cinzento"), nas duas paridades
   icons          setas de vento, fases da lua, triângulos, serra, bússola
   ring           anel das marcas dos mostradores analógicos, em 4 mosaicos de 88 px
 
@@ -236,7 +237,8 @@ if __name__ == "__main__":
     # f17 também serve a linha 1 da janela: precisa das unidades e dos rumos.
     write_font(*text_font("f17", 17, DIGITS + "-%/KTNESWZkmhft", degree=(ring5, 2, 3, 8)))
     write_font(*text_font("f28", 28, DIGITS + UPPER))
-    for name, size in (("f17c", 17), ("f46", 46)):  # dias do DTG em xadrez: Navy e Zulu
+    write_font(*text_font("f19", 19, DIGITS + "Z"))  # DTG do Navy, entre o 9 e o 3
+    for name, size in (("f17c", 17), ("f19c", 19), ("f46", 46)):  # dias do DTG em xadrez
         name, lh, base, glyphs = text_font(name, size, DIGITS)
         write_font(name, lh, base, checker(glyphs))
     write_font(*icon_font())
