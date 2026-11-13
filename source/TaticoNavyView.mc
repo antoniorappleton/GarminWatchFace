@@ -63,12 +63,20 @@ class TaticoNavyView extends WatchUi.WatchFace {
     private var _info = null;
     private var _loc = null;    // última posição conhecida [latitude, longitude]
 
-    // Formas dos ponteiros: pares [distância ao centro, desvio lateral].
+    // Formas dos ponteiros do Surf: pares [distância ao centro, desvio lateral].
     private var _hourBlade = [[4.25, 4.6], [30.5, 4.6], [42, 0], [30.5, -4.6], [4.25, -4.6]];
     private var _hourLume = [[11, 2.4], [30.75, 2.4], [36, 0], [30.75, -2.4], [11, -2.4]];
     private var _minBlade = [[6.5, 3.8], [65, 3.8], [75, 0], [65, -3.8], [6.5, -3.8]];
     private var _minLume = [[12.5, 1.6], [64, 1.6], [69, 0], [64, -1.6], [12.5, -1.6]];
     private var _pommel = [[-10.75, 0], [-8, 3], [-5.25, 0], [-8, -3]];
+
+    // Ponteiros periféricos do Navy: deslizam ao longo do anel das marcas, sem
+    // tocar no centro, deixando a vela desobstruída. Mesmo formato [distância, desvio].
+    private var _hourTri = [[68, 4.5], [76, 0], [68, -4.5]];
+    private var _minTri = [[77, 7], [86, 0], [77, -7]];
+
+    const SAIL_H = 46;   // altura da vela em píxeis
+    const CROSS_R = 8;   // raio da cruz
 
     // Numerais das 3 às 12: centro x, topo y, cardeal (1 = fonte de 17 px).
     // Os das posições 1 e 2 ficam sempre por baixo da subjanela.
@@ -187,14 +195,22 @@ class TaticoNavyView extends WatchUi.WatchFace {
         dc.setColor(_bg, _bg);
         dc.fillRectangle(_sx - 6, 0, 182 - _sx, _sy + 68);
 
-        drawSword(dc, (hour % 12 + min / 60.0) * 30, _hourBlade, _hourLume);
-        drawSword(dc, min * 6, _minBlade, _minLume);
-        dc.setColor(_bg, _bg);
-        dc.fillCircle(88, 88, 6);
-        dc.setColor(_fg, _bg);
-        dc.fillCircle(88, 88, 5);
-        dc.setColor(_bg, _bg);
-        dc.fillCircle(88, 88, 1);
+        if (_style == 0) {
+            // Sem ponteiros nem eixo ao centro: só os dois triângulos no anel.
+            drawPeripheralHand(dc, (hour % 12 + min / 60.0) * 30, _hourTri);
+            drawPeripheralHand(dc, min * 6, _minTri);
+            // Vela com a Cruz de Cristo, entre a assinatura e o DTG, agora desobstruída.
+            drawSailWithCross(dc, 88, 74, _fg);
+        } else {
+            drawSword(dc, (hour % 12 + min / 60.0) * 30, _hourBlade, _hourLume);
+            drawSword(dc, min * 6, _minBlade, _minLume);
+            dc.setColor(_bg, _bg);
+            dc.fillCircle(88, 88, 6);
+            dc.setColor(_fg, _bg);
+            dc.fillCircle(88, 88, 5);
+            dc.setColor(_bg, _bg);
+            dc.fillCircle(88, 88, 1);
+        }
 
         // Texto acima dos ponteiros para preservar a leitura dos dados e da escala.
         dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
@@ -205,10 +221,12 @@ class TaticoNavyView extends WatchUi.WatchFace {
             var label = ((hour >= 12 && i != 12) ? i + 12 : i).toString();
             if (_style == 0) {
                 if (i == 12) {
-                    // Triângulo das 12h, linha a linha (13 px de base).
-                    for (var r = 0; r < 13; r++) {
-                        dc.fillRectangle(88 - r / 2, 18 + r, 2 * (r / 2) + 1, 1);
-                    }
+                    // Círculo das 12h, por cima da marca grossa do anel (sem traço):
+                    // sem ambiguidade com os dois triângulos móveis.
+                    dc.setColor(_bg, _bg);
+                    dc.fillRectangle(83, 0, 11, 16);
+                    dc.setColor(_fg, Graphics.COLOR_TRANSPARENT);
+                    dc.fillCircle(88, 9, 6);
                     continue;
                 }
                 if (!cardinal) {
@@ -224,10 +242,10 @@ class TaticoNavyView extends WatchUi.WatchFace {
             centered(dc, cx, _numerals[k + 1], cardinal ? _f17 : _f9, label);
         }
         if (_showSignature) {
-            text(dc, 67, 36, _f9, "appleton");
+            text(dc, 67, _style == 0 ? 20 : 36, _f9, "appleton");
         }
         if (_style == 2) {
-            text(dc, 73, 122, _icons, "~");  // onda por cima do 18
+            drawWave(dc, 73, 122, _fg);  // onda por cima do 18
             drawSurfLine(dc, 57, _fieldA);
             drawSurfLine(dc, 68, _fieldB);
         }
@@ -285,6 +303,116 @@ class TaticoNavyView extends WatchUi.WatchFace {
         dc.fillPolygon(handPoints(angle, blade, 0));
         dc.setColor(_bg, _bg);
         dc.fillPolygon(handPoints(angle, lume, 0));
+    }
+
+    // Ponteiro periférico do Navy: triângulo com contorno na cor do fundo.
+    private function drawPeripheralHand(dc, angle, shape) as Void {
+        dc.setColor(_bg, _bg);
+        dc.fillPolygon(handPoints(angle, shape, 1));
+        dc.setColor(_fg, _bg);
+        dc.fillPolygon(handPoints(angle, shape, 0));
+    }
+
+    // Desenha a vela só com o contorno lateral (sem base, sem preenchimento)
+    // e a Cruz de Cristo cheia ao centro. (cx, cy): centro da caixa da vela
+    // (36 x 46 px), de cy-23 a cy+23.
+    private function drawSailWithCross(dc as Dc, cx as Number, cy as Number, fgColor as Number) as Void {
+        var top = cy - 23;
+        var crossX = cx;
+        var crossY = cy + 8;
+
+        dc.setColor(fgColor, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(1);
+
+        for (var row = 0; row <= SAIL_H; row++) {
+            var t = row.toFloat() / SAIL_H;
+            var u = 1.0 - t;
+            var y = top + row;
+            // Bordo esquerdo côncavo (t²) e bordo direito convexo (1 - u^1,5): só as duas linhas laterais.
+            var xl = Math.round(cx - 6 - 12 * t * t).toNumber();
+            var xr = Math.round(cx - 6 + 24 * (1.0 - u * Math.sqrt(u))).toNumber();
+            dc.drawPoint(xl, y);
+            dc.drawPoint(xr, y);
+        }
+
+        for (var dy = -CROSS_R; dy <= CROSS_R; dy++) {
+            for (var dx = -CROSS_R; dx <= CROSS_R; dx++) {
+                if (inCross(dx, dy, 0)) {
+                    dc.drawPoint(crossX + dx, crossY + dy);
+                }
+            }
+        }
+    }
+
+    // Onda do Surf: traço único (sem preenchimento) que sobe, enrola numa
+    // espiral na crista e sai em cauda tracejada. (ox, oy): canto superior
+    // esquerdo da caixa (48 x 20 px).
+    private function drawWave(dc as Dc, ox as Number, oy as Number, fgColor as Number) as Void {
+        dc.setColor(fgColor, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(2);
+
+        var steps = 20;
+        var prev = [ox + 2, oy + 15];
+        for (var i = 1; i <= steps; i++) {
+            var pt = cubicBezier([2, 15], [9, 17], [14, 4], [22, 3], i.toFloat() / steps);
+            var cur = [ox + pt[0], oy + pt[1]];
+            dc.drawLine(prev[0], prev[1], cur[0], cur[1]);
+            prev = cur;
+        }
+
+        var curlSteps = 18;
+        for (var i = 1; i <= curlSteps; i++) {
+            var pt = spiralPoint(25, 8, 5.5, 1.2, -140, 220, i.toFloat() / curlSteps);
+            var cur = [ox + pt[0], oy + pt[1]];
+            dc.drawLine(prev[0], prev[1], cur[0], cur[1]);
+            prev = cur;
+        }
+
+        // Cauda tracejada a partir de meio caminho (espuma a dissipar-se).
+        var tailSteps = 16;
+        for (var i = 1; i <= tailSteps; i++) {
+            var pt = cubicBezier([prev[0] - ox, prev[1] - oy], [33, 14], [39, 13], [46, 12], i.toFloat() / tailSteps);
+            var cur = [ox + pt[0], oy + pt[1]];
+            if (i <= tailSteps / 2 || i % 2 == 0) {
+                dc.drawLine(prev[0], prev[1], cur[0], cur[1]);
+            }
+            prev = cur;
+        }
+    }
+
+    private function cubicBezier(p0, p1, p2, p3, t) {
+        var u = 1 - t;
+        return [u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+            u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]];
+    }
+
+    private function spiralPoint(cx, cy, r0, r1, a0, a1, t) {
+        var a = Math.toRadians(a0 + (a1 - a0) * t);
+        var r = r0 + (r1 - r0) * t;
+        return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    }
+
+    // O ponto (dx, dy), relativo ao centro da cruz, pertence à cruz?
+    // grow = 1 alarga a cruz 1 px em todas as direções (para a margem).
+    // Cruz de braços de 3 px que alargam para 7 px nas pontas.
+    private function inCross(dx as Number, dy as Number, grow as Number) as Boolean {
+        var a = (dx < 0 ? -dx : dx) - grow;
+        var b = (dy < 0 ? -dy : dy) - grow;
+        if (a < 0) { a = 0; }
+        if (b < 0) { b = 0; }
+        if (a > CROSS_R || b > CROSS_R) {
+            return false;
+        }
+        if ((a <= 1 && b <= 5) || (b <= 1 && a <= 5)) {
+            return true;                          // corpo dos braços
+        }
+        if (b > 5) {
+            return a <= (b - 4 < 3 ? b - 4 : 3);  // pontas de cima e de baixo
+        }
+        if (a > 5) {
+            return b <= (a - 4 < 3 ? a - 4 : 3);  // pontas dos lados
+        }
+        return false;
     }
 
     // Converte uma forma [distância, desvio] em pontos no ecrã (0° = 12 horas).

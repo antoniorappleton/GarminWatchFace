@@ -2,7 +2,7 @@
 <!-- Appleton Labs — Tático Navy (mostrador para Garmin Instinct 3 Solar) -->
 <iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
     <iq:application
-        id="f787f5a80df148878487d202471088ea"
+        id="f39854985ad24d2e89d818721f346417"
         type="watchface"
         name="@Strings.AppName"
         entry="TaticoNavyApp"

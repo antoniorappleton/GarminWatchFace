@@ -6,10 +6,12 @@ por `tools/gen_assets.py`.
 
 ## Estilos
 
-- **Navy** — analógico, tema claro, escuro ou automático, ponteiros espada,
-  triângulo nas 12h, horas 12/24 nas 3, 6 e 9 e azimute em graus nas restantes
-  posições. O tema automático troca às 06:00 e às 18:00 (hora
-  local) e pode ser claro de dia e escuro de noite, ou o inverso.
+- **Navy** — analógico, tema claro, escuro ou automático, sem ponteiros nem
+  eixo ao centro: dois triângulos periféricos (maior para os minutos, menor
+  para as horas) deslizam ao longo do anel das marcas, círculo nas 12h, horas
+  12/24 nas 3, 6 e 9 e azimute em graus nas restantes posições. O tema
+  automático troca às 06:00 e às 18:00 (hora local) e pode ser claro de dia e
+  escuro de noite, ou o inverso.
 - **Surf** — analógico, tema claro, escuro ou automático, com onda por cima
   das 18h, DTG com o dia em xadrez, nascer/pôr do sol, vento e fase da lua.
 - **Zulu** — digital, tema claro, escuro ou automático, com campos de altitude
@@ -51,9 +53,10 @@ Para abrir qualquer variante de referência no simulador:
 .\tools\run_design_simulator.ps1 -DeveloperKey "C:\caminho\para\developer_key" -Variant Surf
 ```
 
-As três builds usam os dados fixos da folha; Navy claro mostra o cenário da
-manhã (10:08Z), e Navy escuro e Surf mostram o cenário da tarde (16:33Z).
-Zulu também está disponível nos dois temas:
+As três builds usam dados fixos; Navy claro mostra 02:40, Navy escuro 19:50
+(horas e minutos bem separados, para rever os dois triângulos periféricos), e
+Surf mostra o cenário da tarde (16:33Z). Zulu também está disponível nos dois
+temas:
 
 ```powershell
 .\tools\run_design_simulator.ps1 -DeveloperKey "C:\caminho\para\developer_key" -Variant ZuluLight

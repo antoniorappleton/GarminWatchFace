@@ -4,7 +4,7 @@ Tudo o que o mostrador desenha, exceto os ponteiros, vem de fontes de píxeis:
   f9, f13, f17   texto (DejaVu Sans Condensed Bold, limiar fixo, sem cinzentos)
   f28            HHMM + fuso do Zulu
   f17c, f46      dia do DTG (Navy e Zulu), já em xadrez ("cinzento"), nas duas paridades
-  icons          setas de vento, fases da lua, triângulos, onda, serra, bússola
+  icons          setas de vento, fases da lua, triângulos, serra, bússola
   ring           anel das marcas dos mostradores analógicos, em 4 mosaicos de 88 px
 
 Uso:  python tools/gen_assets.py     (a partir da pasta do projeto)
@@ -95,25 +95,6 @@ ARROW_N = art(
     "...###...",
     "...###...")
 TRI_UP = art("...#...", "...#...", "..###..", "..###..", ".#####.", ".#####.", "#######")
-# Onda do Surf: crista a enrolar para a direita, por cima do 18.
-WAVE = art(
-    "...............#######........",
-    ".............###########......",
-    "...........#####.....#####....",
-    "..........####.......######...",
-    ".........###.......####...##..",
-    "........###.......####........",
-    ".......###.......####.........",
-    "......###.......#####.........",
-    "....####.......######.........",
-    "..####........########........",
-    "##...........##########.......",
-    "............###########...##..",
-    "..........#############..##...",
-    "........#####.....#########...",
-    ".....######.........######....",
-    "..######..............##......",
-    "#####.........................")
 # Serra com sol do Zulu, por cima da assinatura: cristas irregulares,
 # sulcos de sombra nas encostas e base recortada.
 MOUNTAINS = art(
@@ -184,7 +165,6 @@ def icon_font():
         g.append((ord("M") + i, moon(i), 0, 0, 14))
     g.append((ord("^"), TRI_UP, 0, 0, 8))
     g.append((ord("v"), TRI_UP[::-1], 0, 0, 8))
-    g.append((ord("~"), WAVE, 0, 0, WAVE.shape[1]))
     g.append((ord("m"), MOUNTAINS, 0, 0, MOUNTAINS.shape[1]))
     compass = np.zeros((62, 62), bool)
     for x, y in COMPASS:

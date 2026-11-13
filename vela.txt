@@ -1,0 +1,62 @@
+    const SAIL_H = 46;   // altura da vela em píxeis
+    const CROSS_R = 8;   // raio da cruz
+
+    // Desenha a vela SEM contorno, só com preenchimento, e a Cruz de Cristo.
+    // (cx, cy) é o centro da caixa da vela (36 x 46 px): de cy-23 a cy+23.
+    // No mostrador de 176 px, entre "appleton" e o DTG, usar cy = 74.
+    // useDither: true  = "cinzento" em xadrez, igual ao dia do DTG
+    //            false = preenchimento cheio
+    // A cruz é sempre preta: no fundo claro é cheia, com 1 px de margem à volta;
+    // no fundo escuro é recortada na vela.
+    function drawSailWithCross(
+        dc as Dc,
+        cx as Number,
+        cy as Number,
+        fgColor as Number,
+        bgColor as Number,
+        useDither as Boolean
+    ) as Void {
+
+        var top = cy - 23;
+        var crossX = cx;
+        var crossY = cy + 8;
+        var knockout = (bgColor == Graphics.COLOR_BLACK);   // fundo escuro
+
+        dc.setColor(fgColor, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(1);
+
+        for (var row = 0; row <= SAIL_H; row++) {
+            var t = row.toFloat() / SAIL_H;
+            var u = 1.0 - t;
+            var y = top + row;
+            // Bordo esquerdo côncavo (t²) e bordo direito convexo (1 - u^1,5)
+            var xl = Math.round(cx - 6 - 12 * t * t).toNumber();
+            var xr = Math.round(cx - 6 + 24 * (1.0 - u * Math.sqrt(u))).toNumber();
+            var dy = y - crossY;
+            var nearCross = dy >= -CROSS_R - 1 && dy <= CROSS_R + 1;
+
+            // Linha cheia longe da cruz: um só traço (rápido)
+            if (!useDither && !nearCross) {
+                dc.drawLine(xl, y, xr + 1, y);
+                continue;
+            }
+
+            for (var x = xl; x <= xr; x++) {
+                var dx = x - crossX;
+                if (nearCross && dx >= -CROSS_R - 1 && dx <= CROSS_R + 1) {
+                    if (inCross(dx, dy, 0)) {
+                        if (!knockout) {
+                            dc.drawPoint(x, y);   // cruz cheia
+                        }
+                        continue;
+                    }
+                    if (!knockout && inCross(dx, dy, 1)) {
+                        continue;                 // margem de 1 px à volta da cruz
+                    }
+                }
+                if (!useDither || (x + y) % 2 == 0) {
+                    dc.drawPoint(x, y);
+                }
+            }
+        }
+    }

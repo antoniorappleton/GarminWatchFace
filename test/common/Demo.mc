@@ -8,16 +8,35 @@ function demoValue(id, style, dark) {
     } else if (id == -2) {
         return DEMO_DARK;
     }
-    var morning = style == 0 && !dark;
+    var navyMorning = style == 0 && !dark;
+    var navyEvening = style == 0 && dark;
     if (id == 15) {
         if (style == 1) {
             return "1654Z";
         }
-        return morning ? "1008Z" : "1633Z";
+        if (navyMorning) {
+            return "0240Z";
+        }
+        if (navyEvening) {
+            return "1950Z";
+        }
+        return "1633Z";
     } else if (id == 16) {
-        return morning ? 10 : 16;
+        if (navyMorning) {
+            return 2;
+        }
+        if (navyEvening) {
+            return 19;
+        }
+        return 16;
     } else if (id == 17) {
-        return morning ? 8 : 33;
+        if (navyMorning) {
+            return 40;
+        }
+        if (navyEvening) {
+            return 50;
+        }
+        return 33;
     } else if (id == 18) {
         return "85%";
     }

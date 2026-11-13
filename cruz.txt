@@ -1,0 +1,22 @@
+    // O ponto (dx, dy), relativo ao centro da cruz, pertence à cruz?
+    // grow = 1 alarga a cruz 1 px em todas as direções (para a margem).
+    // Cruz de braços de 3 px que alargam para 7 px nas pontas.
+    function inCross(dx as Number, dy as Number, grow as Number) as Boolean {
+        var a = (dx < 0 ? -dx : dx) - grow;
+        var b = (dy < 0 ? -dy : dy) - grow;
+        if (a < 0) { a = 0; }
+        if (b < 0) { b = 0; }
+        if (a > CROSS_R || b > CROSS_R) {
+            return false;
+        }
+        if ((a <= 1 && b <= 5) || (b <= 1 && a <= 5)) {
+            return true;                          // corpo dos braços
+        }
+        if (b > 5) {
+            return a <= (b - 4 < 3 ? b - 4 : 3);  // pontas de cima e de baixo
+        }
+        if (a > 5) {
+            return b <= (a - 4 < 3 ? a - 4 : 3);  // pontas dos lados
+        }
+        return false;
+    }
